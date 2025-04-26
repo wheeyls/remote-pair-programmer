@@ -98,43 +98,24 @@ async function processIssue(aiClient, triggerPhrase) {
       return;
     }
 
-    // Convert the issue to a PR using the GitHub API
-    // This requires using the GraphQL API as the REST API doesn't support this directly
-    const query = `
-      mutation {
-        convertToDraft(input: {
-          repositoryId: "${issue.repository_id}",
-          issueId: "${issue.node_id}"
-        }) {
-          pullRequest {
-            id
-            number
-          }
-        }
-      }
-    `;
-
-    // Execute the GraphQL query
-    const graphqlResponse = await octokit.graphql(query);
-    const prNumber = graphqlResponse.convertToDraft.pullRequest.number;
-    
-    // Update the PR with the correct head and base branches
-    await octokit.pulls.update({
+    // Create a new PR directly instead of converting the issue
+    const { data: pullRequest } = await octokit.pulls.create({
       owner,
       repo,
-      pull_number: prNumber,
       title: `AI: ${result.explanation}`,
-      body: `**Changes made:**\n${result.explanation}\n\n**Modified files:**\n${result.changedFiles.map(f => `- \`${f}\``).join('\n')}`,
+      body: `Fixes #${issueNumber}\n\n**Changes made:**\n${result.explanation}\n\n**Modified files:**\n${result.changedFiles.map(f => `- \`${f}\``).join('\n')}`,
       head: newBranch,
       base: baseBranch
     });
-
-    // Comment on the PR with details about the changes
+    
+    const prNumber = pullRequest.number;
+    
+    // Comment on the issue with a link to the PR
     await octokit.issues.createComment({
       owner,
       repo,
-      issue_number: prNumber,
-      body: `✅ I've converted this issue into a PR and made the requested changes.\n\n**Changes made:**\n${result.explanation}\n\n**Modified files:**\n${result.changedFiles.map(f => `- \`${f}\``).join('\n')}`
+      issue_number: issueNumber,
+      body: `✅ I've created a PR with the requested changes: #${prNumber}\n\n**Changes made:**\n${result.explanation}\n\n**Modified files:**\n${result.changedFiles.map(f => `- \`${f}\``).join('\n')}`
     });
 
   } catch (error) {
