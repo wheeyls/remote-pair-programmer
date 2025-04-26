@@ -1,5 +1,7 @@
 const { Octokit } = require('@octokit/rest');
 const { OpenAI } = require('openai');
+const { modifyCode } = require('./codeChanges');
+const PROMPTS = require('./prompts');
 
 // Initialize API clients
 const octokit = new Octokit({
@@ -62,34 +64,76 @@ async function processComment() {
   const commentBody = process.env.COMMENT_BODY;
 
   try {
-    // Generate AI response to comment
-    const aiResponse = await generateAIResponse({
-      comment: commentBody,
-      context: `PR #${prNumber}`
-    });
+    // Check if this is a code modification request
+    const isCodeModRequest = commentBody.includes('@github-ai-bot') && 
+      (commentBody.includes('change') || 
+       commentBody.includes('modify') || 
+       commentBody.includes('update') || 
+       commentBody.includes('fix') || 
+       commentBody.includes('implement') || 
+       commentBody.includes('refactor'));
 
-    // Post AI response as a reply
+    if (isCodeModRequest) {
+      // This is a code modification request
+      const result = await modifyCode({
+        owner,
+        repo,
+        prNumber,
+        requestText: commentBody,
+        openai
+      });
+
+      let responseBody;
+      if (result.success) {
+        responseBody = `✅ I've made the requested changes and pushed them to this PR.\n\n**Changes made:**\n${result.explanation}\n\n**Modified files:**\n${result.changedFiles.map(f => `- \`${f}\``).join('\n')}`;
+      } else {
+        responseBody = `❌ I encountered an error while trying to modify the code:\n\`\`\`\n${result.error}\n\`\`\`\n\nPlease provide more details or try a different request.`;
+      }
+
+      // Post response as a reply
+      await octokit.issues.createComment({
+        owner,
+        repo,
+        issue_number: prNumber,
+        body: `> ${commentBody}\n\n${responseBody}`
+      });
+    } else {
+      // This is a regular comment, just respond with AI
+      const aiResponse = await generateAIResponse({
+        comment: commentBody,
+        context: `PR #${prNumber}`,
+        promptType: 'COMMENT_RESPONSE'
+      });
+
+      // Post AI response as a reply
+      await octokit.issues.createComment({
+        owner,
+        repo,
+        issue_number: prNumber,
+        body: `> ${commentBody}\n\n${aiResponse}`
+      });
+    }
+  } catch (error) {
+    console.error('Error processing comment:', error);
+    
+    // Post error message as a reply
     await octokit.issues.createComment({
       owner,
       repo,
       issue_number: prNumber,
-      body: `> ${commentBody}\n\n${aiResponse}`
+      body: `> ${commentBody}\n\n❌ I encountered an error while processing your request:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or rephrase your request.`
     });
-
-  } catch (error) {
-    console.error('Error processing comment:', error);
-    throw error;
   }
 }
 
-async function generateAIResponse(context) {
+async function generateAIResponse(context, promptType = 'PR_REVIEW') {
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: "You are a helpful AI assistant reviewing code and responding to questions about pull requests. Provide constructive feedback and clear explanations."
+          content: PROMPTS[promptType]
         },
         {
           role: "user",
