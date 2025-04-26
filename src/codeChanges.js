@@ -17,10 +17,10 @@ const octokit = new Octokit({
  * @param {string} params.repo - Repository name
  * @param {number} params.prNumber - Pull request number
  * @param {string} params.requestText - The text of the request to modify code
- * @param {Object} params.openai - OpenAI client instance
+ * @param {Object} params.aiClient - AIClient instance
  * @returns {Object} - Result of the code modification operation
  */
-async function modifyCode({ owner, repo, prNumber, requestText, openai }) {
+async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
   try {
     // 1. Get PR details and files
     const { data: pullRequest } = await octokit.pulls.get({
@@ -51,11 +51,6 @@ async function modifyCode({ owner, repo, prNumber, requestText, openai }) {
         }
       }
     }
-    
-    // Create AI client for this request
-    const aiClient = new AIClient({
-      apiKey: process.env.AI_API_KEY || openai.apiKey
-    });
     
     // 4. Ask AI to analyze the request and determine what changes to make
     const contextContent = `Request: ${requestText}

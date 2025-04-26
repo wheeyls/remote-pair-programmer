@@ -80,7 +80,7 @@ async function processComment() {
         repo,
         prNumber,
         requestText: commentBody,
-        openai: aiClient.openai // Pass the OpenAI instance from our client
+        aiClient: aiClient // Pass the AIClient instance
       });
 
       let responseBody;
