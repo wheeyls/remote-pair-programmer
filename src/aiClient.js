@@ -16,7 +16,7 @@ class AIClient {
     
     // Model configuration
     this.models = {
-      strong: "gpt-4",
+      strong: options.model || "gpt-4",
       weak: "gpt-3.5-turbo"
     };
   }

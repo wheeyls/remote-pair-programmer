@@ -1,0 +1,60 @@
+name: 'GitHub AI Coding Agent'
+description: 'AI agent that can make code changes directly to PRs based on comments'
+author: 'Your Name'
+
+branding:
+  icon: 'code'
+  color: 'blue'
+
+inputs:
+  openai-api-key:
+    description: 'OpenAI API key'
+    required: true
+  model:
+    description: 'AI model to use'
+    required: false
+    default: 'gpt-4'
+  trigger-phrase:
+    description: 'Phrase to trigger the agent'
+    required: false
+    default: '@github-ai-bot'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.ref }}
+        token: ${{ github.token }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+      shell: bash
+
+    - name: Run AI Agent
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        REPO_OWNER: ${{ github.repository_owner }}
+        REPO_NAME: ${{ github.event.repository.name }}
+        COMMENT_ID: ${{ github.event.comment.id || '' }}
+        COMMENT_BODY: ${{ github.event.comment.body || '' }}
+        EVENT_TYPE: ${{ github.event_name }}
+        AI_API_KEY: ${{ inputs.openai-api-key }}
+        AI_MODEL: ${{ inputs.model }}
+        TRIGGER_PHRASE: ${{ inputs.trigger-phrase }}
+      run: |
+        if [ "${{ github.event_name }}" == "pull_request" ]; then
+          node src/handler.js process-pr
+        else
+          node src/handler.js process-comment
+        fi
+      shell: bash

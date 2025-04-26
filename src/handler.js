@@ -9,8 +9,12 @@ const octokit = new Octokit({
 });
 
 const aiClient = new AIClient({
-  apiKey: process.env.AI_API_KEY
+  apiKey: process.env.AI_API_KEY,
+  model: process.env.AI_MODEL || 'gpt-4'
 });
+
+// Get trigger phrase from environment or use default
+const TRIGGER_PHRASE = process.env.TRIGGER_PHRASE || '@github-ai-bot';
 
 async function processPullRequest() {
   const prNumber = process.env.PR_NUMBER;
@@ -65,7 +69,7 @@ async function processComment() {
 
   try {
     // Check if this is a code modification request
-    const isCodeModRequest = commentBody.includes('@github-ai-bot') && 
+    const isCodeModRequest = commentBody.includes(TRIGGER_PHRASE) && 
       (commentBody.includes('change') || 
        commentBody.includes('modify') || 
        commentBody.includes('update') || 

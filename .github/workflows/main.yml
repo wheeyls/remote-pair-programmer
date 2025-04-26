@@ -1,4 +1,4 @@
-name: AI-driven PR Response
+name: AI Coding Agent
 
 on:
   pull_request:
@@ -33,34 +33,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Determine event type
-        id: event-type
+      - name: Run AI Agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          COMMENT_ID: ${{ github.event.comment.id || '' }}
+          COMMENT_BODY: ${{ github.event.comment.body || '' }}
+          EVENT_TYPE: ${{ github.event_name }}
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "EVENT_TYPE=pull_request" >> $GITHUB_ENV
+            node src/handler.js process-pr
           else
-            echo "EVENT_TYPE=comment" >> $GITHUB_ENV
+            node src/handler.js process-comment
           fi
-
-      - name: Process pull request
-        if: env.EVENT_TYPE == 'pull_request'
-        run: node src/handler.js process-pr
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          REPO_OWNER: ${{ github.repository_owner }}
-          REPO_NAME: ${{ github.event.repository.name }}
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
-
-      - name: Process comment
-        if: env.EVENT_TYPE == 'comment'
-        run: node src/handler.js process-comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMENT_ID: ${{ github.event.comment.id }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-          REPO_OWNER: ${{ github.repository_owner }}
-          REPO_NAME: ${{ github.event.repository.name }}
-          COMMENT_BODY: ${{ github.event.comment.body }}
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
 
