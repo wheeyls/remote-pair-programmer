@@ -23,7 +23,8 @@ class AIClient {
       });
     } else if (this.provider === 'anthropic') {
       this.adapter = new AnthropicAdapter({
-        apiKey: options.apiKey
+        apiKey: options.apiKey,
+        baseUrl: options.anthropicBaseUrl
       });
     } else {
       throw new Error(`Unsupported AI provider: ${this.provider}`);
