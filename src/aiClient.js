@@ -11,7 +11,8 @@ class AIClient {
    * @param {string} options.apiKey - API key for the selected provider
    * @param {string} [options.provider="openai"] - AI provider to use ("openai" or "anthropic")
    * @param {string} [options.model] - Default model to use
-   * @param {string} [options.anthropicBaseUrl] - Base URL for Anthropic API (if needed)
+   * @param {string} [options.provider="openai"] - AI provider to use ("openai" or "anthropic")
+   * @param {string} [options.model] - Default model to use
    */
   constructor(options) {
     this.provider = options.provider || 'openai';
@@ -23,8 +24,7 @@ class AIClient {
       });
     } else if (this.provider === 'anthropic') {
       this.adapter = new AnthropicAdapter({
-        apiKey: options.apiKey,
-        baseUrl: options.anthropicBaseUrl
+        apiKey: options.apiKey
       });
     } else {
       throw new Error(`Unsupported AI provider: ${this.provider}`);

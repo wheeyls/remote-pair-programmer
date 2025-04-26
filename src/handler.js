@@ -12,7 +12,7 @@ const aiClient = new AIClient({
   strongModel: process.env.STRONG_AI_MODEL,
   weakModel: process.env.WEAK_AI_MODEL,
   provider: process.env.AI_PROVIDER || 'openai',
-  anthropicBaseUrl: process.env.ANTHROPIC_BASE_URL
+  provider: process.env.AI_PROVIDER || 'openai'
 });
 
 // Get trigger phrase from environment or use default

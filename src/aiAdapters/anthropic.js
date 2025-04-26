@@ -14,7 +14,7 @@ class AnthropicAdapter extends BaseAdapter {
     super(options);
 
     this.client = new Anthropic({
-      apiKey: this.apiKey,
+      apiKey: this.apiKey
     });
   }
 
