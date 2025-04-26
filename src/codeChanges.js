@@ -100,7 +100,14 @@ ${Object.entries(fileContents).map(([filename, content]) =>
     });
     
     // 5. Parse the AI response
-    const modifications = JSON.parse(aiResponse);
+    let modifications;
+    try {
+      modifications = JSON.parse(aiResponse);
+    } catch (error) {
+      console.error('Error parsing JSON response:', error);
+      console.log('Raw response:', aiResponse);
+      throw new Error(`Failed to parse AI response as JSON: ${error.message}`);
+    }
     
     // 6. Apply the changes to the files
     for (const change of modifications.changes) {

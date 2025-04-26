@@ -63,11 +63,17 @@ class AnthropicAdapter extends BaseAdapter {
       const completion = await this.client.messages.create(anthropicOptions);
 
       // Convert Anthropic response to OpenAI-like format for compatibility
+      // Make sure we're handling the response format correctly
+      let content = '';
+      if (completion.content && Array.isArray(completion.content) && completion.content.length > 0) {
+        content = completion.content[0].text || '';
+      }
+
       return {
         choices: [
           {
             message: {
-              content: completion.content[0].text,
+              content: content,
               role: 'assistant',
             },
           },
