@@ -9,7 +9,10 @@ branding:
 inputs:
   openai-api-key:
     description: 'API key for OpenAI or Sonnet'
-    required: true
+    required: false
+  anthropic-api-key:
+    description: 'API key for Anthropic'
+    required: false
   model:
     description: 'Default AI model to use'
     required: false
@@ -27,7 +30,7 @@ inputs:
     required: false
     default: '@github-ai-bot'
   ai-provider:
-    description: 'AI provider to use (openai or sonnet)'
+    description: 'AI provider to use (openai, sonnet, or anthropic)'
     required: false
     default: 'openai'
   sonnet-base-url:
@@ -65,6 +68,7 @@ runs:
         COMMENT_BODY: ${{ github.event.comment.body || '' }}
         EVENT_TYPE: ${{ github.event_name }}
         AI_API_KEY: ${{ inputs.openai-api-key }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         AI_MODEL: ${{ inputs.model }}
         STRONG_AI_MODEL: ${{ inputs.strong-model }}
         WEAK_AI_MODEL: ${{ inputs.weak-model }}

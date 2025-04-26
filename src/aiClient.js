@@ -1,5 +1,6 @@
 const OpenAIAdapter = require('./aiAdapters/openai');
 const SonnetAdapter = require('./aiAdapters/sonnet');
+const AnthropicAdapter = require('./aiAdapters/anthropic');
 
 /**
  * A wrapper around AI APIs that simplifies model selection and provider switching
@@ -25,6 +26,10 @@ class AIClient {
       this.adapter = new SonnetAdapter({
         apiKey: options.apiKey,
         baseUrl: options.sonnetBaseUrl
+      });
+    } else if (this.provider === 'anthropic') {
+      this.adapter = new AnthropicAdapter({
+        apiKey: options.apiKey
       });
     } else {
       throw new Error(`Unsupported AI provider: ${this.provider}`);

@@ -86,32 +86,75 @@ jobs:
           weak-model: 'claude-3-5-haiku-20241022'
 ```
 
+For Anthropic:
+
+```yaml
+name: AI Coding Agent with Anthropic
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  process-event:
+    runs-on: ubuntu-latest
+    if: ${{ (github.event_name == 'pull_request') || (github.event_name == 'issue_comment' && github.event.issue.pull_request) }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - name: Run AI Agent
+        uses: yourusername/github-ai-agent@v1
+        with:
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          ai-provider: 'anthropic'
+          model: 'claude-3-5-sonnet-latest'
+          strong-model: 'claude-3-5-sonnet-latest'
+          weak-model: 'claude-3-haiku-latest'
+```
+
 ## Configuration
 
 ### Required Secrets
 
-- `AI_API_KEY` - Your OpenAI or Sonnet API key
+- `AI_API_KEY` - Your OpenAI or Sonnet API key (when using those providers)
+- `ANTHROPIC_API_KEY` - Your Anthropic API key (when using Anthropic provider)
 
 To add your API key to GitHub Actions:
 
 1. Go to your GitHub repository
 2. Click on "Settings" > "Secrets and variables" > "Actions"
 3. Click "New repository secret"
-4. Name: `AI_API_KEY`
-5. Value: Your OpenAI API key
+4. Name: `AI_API_KEY` or `ANTHROPIC_API_KEY` depending on your provider
+5. Value: Your API key
 6. Click "Add secret"
 
 ### Inputs
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `openai-api-key` | API key for OpenAI or Sonnet | Yes | N/A |
+| `openai-api-key` | API key for OpenAI or Sonnet | No* | N/A |
+| `anthropic-api-key` | API key for Anthropic | No* | N/A |
 | `model` | Default AI model to use | No | `gpt-4` |
 | `strong-model` | Strong AI model for complex tasks | No | Provider default |
 | `weak-model` | Weak AI model for simple tasks | No | Provider default |
 | `trigger-phrase` | Phrase to trigger the agent | No | `@github-ai-bot` |
-| `ai-provider` | AI provider to use (openai or sonnet) | No | `openai` |
+| `ai-provider` | AI provider to use (openai, sonnet, or anthropic) | No | `openai` |
 | `sonnet-base-url` | Base URL for Sonnet API (if using Sonnet) | No | `https://api.sonnet.io/v1` |
+
+*Either `openai-api-key` or `anthropic-api-key` is required depending on which provider you use.
 
 ## Examples
 
