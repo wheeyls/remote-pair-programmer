@@ -33,8 +33,7 @@ class AnthropicAdapter extends BaseAdapter {
       const anthropicOptions = {
         model: options.model,
         messages: options.messages,
-        temperature: options.temperature,
-        max_tokens: 4096, // Default max tokens
+        temperature: options.temperature
       };
 
       // Handle response format if specified
