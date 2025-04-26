@@ -38,11 +38,12 @@ jobs:
           COMMENT_BODY: ${{ github.event.comment.body || '' }}
           EVENT_TYPE: ${{ github.event_name }}
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
-          AI_MODEL: 'gpt-4.1'
-          STRONG_AI_MODEL: 'gpt-4.1'
-          WEAK_AI_MODEL: 'gpt-4.1-mini'
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AI_MODEL: 'claude-3-7-sonnet-latest'
+          STRONG_AI_MODEL: 'claude-3-7-sonnet-latest'
+          WEAK_AI_MODEL: 'claude-3-haiku-latest'
           TRIGGER_PHRASE: 'Hey Monty'
-          AI_PROVIDER: 'openai'
+          AI_PROVIDER: 'anthropic'
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             node src/handler.js process-pr

@@ -11,7 +11,6 @@ const aiClient = new AIClient({
   model: process.env.AI_MODEL || 'gpt-4',
   strongModel: process.env.STRONG_AI_MODEL,
   weakModel: process.env.WEAK_AI_MODEL,
-  provider: process.env.AI_PROVIDER || 'openai',
   provider: process.env.AI_PROVIDER || 'openai'
 });
 
