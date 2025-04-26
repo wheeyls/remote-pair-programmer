@@ -126,10 +126,18 @@ Comment on a PR with:
 
 ```
 @github-ai-bot implement a function that sorts this array
+
+.add-files
+- src/utils/*.js
+- src/components/
+
+.ignore
+- node_modules/
+- dist/
 ```
 
 The agent will:
-1. Analyze the PR context
+1. Analyze the PR context and the additional files specified
 2. Generate appropriate code changes
 3. Commit directly to the PR branch
 4. Reply with a summary of changes
@@ -144,6 +152,10 @@ Title: @github-ai-bot Add pagination to the user list
 Body:
 Please implement pagination for the user list component.
 We should show 10 users per page and add next/previous buttons.
+
+.add-files
+- src/components/UserList.js
+- src/styles/pagination.css
 ```
 
 The agent will:

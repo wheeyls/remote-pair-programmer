@@ -37,7 +37,13 @@ Your task is to:
   "explanation": "A brief explanation of the changes made"
 }
 
-Only include files that need to be modified. Be precise with line numbers.`
+Only include files that need to be modified. Be precise with line numbers.
+
+Note: The user may have included file context directives in their request:
+- .add-files: List of additional files or globs to include in context
+- .ignore: List of files or directories to exclude from context
+
+These directives have already been processed, and you have access to all the relevant files.`
 };
 
 module.exports = PROMPTS;

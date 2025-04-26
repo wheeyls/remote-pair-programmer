@@ -26,7 +26,8 @@ async function processRequest(params) {
        requestText.includes('update') || 
        requestText.includes('fix') || 
        requestText.includes('implement') || 
-       requestText.includes('refactor'));
+       requestText.includes('refactor') ||
+       requestText.includes('.add-files')); // Consider requests with file directives as code mod requests
 
     if (isCodeModRequest) {
       // This is a code modification request

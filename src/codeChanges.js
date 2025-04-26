@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const PROMPTS = require('./prompts');
 const AIClient = require('./aiClient');
+const { processFileContext } = require('./utils/fileContext');
 
 // Initialize GitHub API client
 const octokit = new Octokit({
@@ -51,37 +52,23 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
     // If it's an issue, we're already on the correct branch from the caller
     
     // 3. Get file contents for relevant files
-    const fileContents = {};
+    let baseFiles = [];
     
     if (isPR && files.length > 0) {
       // If it's a PR, use the files from the PR
-      for (const file of files) {
-        if (file.status !== 'removed') {
-          try {
-            const content = fs.readFileSync(file.filename, 'utf8');
-            fileContents[file.filename] = content;
-          } catch (err) {
-            console.warn(`Could not read file ${file.filename}: ${err.message}`);
-          }
-        }
-      }
+      baseFiles = files.filter(file => file.status !== 'removed').map(file => file.filename);
     } else {
       // If it's an issue or an empty PR, get all files in the repo
       // This is a simplified approach - in a real implementation, you might want to be more selective
-      const allFiles = getAllRepoFiles();
-      for (const file of allFiles) {
-        try {
-          if (file.endsWith('.js') || file.endsWith('.jsx') || file.endsWith('.ts') || 
-              file.endsWith('.tsx') || file.endsWith('.json') || file.endsWith('.md') ||
-              file.endsWith('.css') || file.endsWith('.html')) {
-            const content = fs.readFileSync(file, 'utf8');
-            fileContents[file] = content;
-          }
-        } catch (err) {
-          console.warn(`Could not read file ${file}: ${err.message}`);
-        }
-      }
+      baseFiles = getAllRepoFiles().filter(file => 
+        file.endsWith('.js') || file.endsWith('.jsx') || file.endsWith('.ts') || 
+        file.endsWith('.tsx') || file.endsWith('.json') || file.endsWith('.md') ||
+        file.endsWith('.css') || file.endsWith('.html')
+      );
     }
+    
+    // Process file context directives in the request text
+    const fileContents = processFileContext(requestText, baseFiles);
     
     // 4. Ask AI to analyze the request and determine what changes to make
     const contextContent = `Request: ${requestText}
