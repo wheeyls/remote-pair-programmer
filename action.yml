@@ -8,7 +8,7 @@ branding:
 
 inputs:
   openai-api-key:
-    description: 'OpenAI API key'
+    description: 'API key for OpenAI or Sonnet'
     required: true
   model:
     description: 'AI model to use'
@@ -18,6 +18,14 @@ inputs:
     description: 'Phrase to trigger the agent'
     required: false
     default: '@github-ai-bot'
+  ai-provider:
+    description: 'AI provider to use (openai or sonnet)'
+    required: false
+    default: 'openai'
+  sonnet-base-url:
+    description: 'Base URL for Sonnet API (if using Sonnet)'
+    required: false
+    default: 'https://api.sonnet.io/v1'
 
 runs:
   using: 'composite'
@@ -51,6 +59,8 @@ runs:
         AI_API_KEY: ${{ inputs.openai-api-key }}
         AI_MODEL: ${{ inputs.model }}
         TRIGGER_PHRASE: ${{ inputs.trigger-phrase }}
+        AI_PROVIDER: ${{ inputs.ai-provider }}
+        SONNET_BASE_URL: ${{ inputs.sonnet-base-url }}
       run: |
         if [ "${{ github.event_name }}" == "pull_request" ]; then
           node src/handler.js process-pr

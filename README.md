@@ -47,9 +47,9 @@ jobs:
 
 ### Required Secrets
 
-- `AI_API_KEY` - Your OpenAI API key
+- `AI_API_KEY` - Your OpenAI or Sonnet API key
 
-To add your OpenAI API key to GitHub Actions:
+To add your API key to GitHub Actions:
 
 1. Go to your GitHub repository
 2. Click on "Settings" > "Secrets and variables" > "Actions"
@@ -62,9 +62,11 @@ To add your OpenAI API key to GitHub Actions:
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `openai-api-key` | OpenAI API key | Yes | N/A |
+| `openai-api-key` | API key for OpenAI or Sonnet | Yes | N/A |
 | `model` | AI model to use | No | `gpt-4` |
 | `trigger-phrase` | Phrase to trigger the agent | No | `@github-ai-bot` |
+| `ai-provider` | AI provider to use (openai or sonnet) | No | `openai` |
+| `sonnet-base-url` | Base URL for Sonnet API (if using Sonnet) | No | `https://api.sonnet.io/v1` |
 
 ## Examples
 

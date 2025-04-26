@@ -10,7 +10,9 @@ const octokit = new Octokit({
 
 const aiClient = new AIClient({
   apiKey: process.env.AI_API_KEY,
-  model: process.env.AI_MODEL || 'gpt-4'
+  model: process.env.AI_MODEL || 'gpt-4',
+  provider: process.env.AI_PROVIDER || 'openai',
+  sonnetBaseUrl: process.env.SONNET_BASE_URL
 });
 
 // Get trigger phrase from environment or use default
