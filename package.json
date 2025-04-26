@@ -19,6 +19,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",
     "@octokit/rest": "^21.1.1",
+    "glob": "^10.3.10",
     "node-fetch": "^3.3.2",
     "openai": "^4.0.0"
   },
