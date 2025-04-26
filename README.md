@@ -144,8 +144,8 @@ We should show 10 users per page and add next/previous buttons.
 The agent will:
 1. Create a new branch
 2. Make the requested changes
-3. Open a PR with those changes
-4. Link back to the original issue
+3. Convert the issue directly into a PR
+4. Update the PR with the changes
 
 ## License
 
