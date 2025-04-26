@@ -36,8 +36,10 @@ jobs:
           COMMENT_BODY: ${{ github.event.comment.body || '' }}
           EVENT_TYPE: ${{ github.event_name }}
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
-          AI_MODEL: 'gpt-4'
+          AI_MODEL: 'claude-3-opus-20240229'
           TRIGGER_PHRASE: '@github-ai-bot'
+          AI_PROVIDER: 'sonnet'
+          SONNET_BASE_URL: 'https://api.sonnet.io/v1'
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             node src/handler.js process-pr

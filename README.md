@@ -41,6 +41,43 @@ jobs:
         uses: yourusername/github-ai-agent@v1
         with:
           openai-api-key: ${{ secrets.AI_API_KEY }}
+          ai-provider: 'openai'  # Explicitly set to use OpenAI
+          model: 'gpt-4'
+```
+
+For Sonnet:
+
+```yaml
+name: AI Coding Agent with Sonnet
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  process-event:
+    runs-on: ubuntu-latest
+    if: ${{ (github.event_name == 'pull_request') || (github.event_name == 'issue_comment' && github.event.issue.pull_request) }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - name: Run AI Agent
+        uses: yourusername/github-ai-agent@v1
+        with:
+          openai-api-key: ${{ secrets.SONNET_API_KEY }}
+          ai-provider: 'sonnet'
+          model: 'claude-3-opus-20240229'
 ```
 
 ## Configuration
