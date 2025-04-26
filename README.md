@@ -49,6 +49,15 @@ jobs:
 
 - `AI_API_KEY` - Your OpenAI API key
 
+To add your OpenAI API key to GitHub Actions:
+
+1. Go to your GitHub repository
+2. Click on "Settings" > "Secrets and variables" > "Actions"
+3. Click "New repository secret"
+4. Name: `AI_API_KEY`
+5. Value: Your OpenAI API key
+6. Click "Add secret"
+
 ### Inputs
 
 | Input | Description | Required | Default |
