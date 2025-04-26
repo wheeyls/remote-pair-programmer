@@ -1,8 +1,8 @@
-const { OpenAI } = require('openai');
-const SonnetClient = require('./sonnetClient');
+const OpenAIAdapter = require('./aiAdapters/openai');
+const SonnetAdapter = require('./aiAdapters/sonnet');
 
 /**
- * A wrapper around AI APIs that simplifies model selection
+ * A wrapper around AI APIs that simplifies model selection and provider switching
  */
 class AIClient {
   /**
@@ -10,17 +10,19 @@ class AIClient {
    * @param {Object} options - Configuration options
    * @param {string} options.apiKey - API key for the selected provider
    * @param {string} [options.provider="openai"] - AI provider to use ("openai" or "sonnet")
+   * @param {string} [options.model] - Default model to use
    * @param {string} [options.sonnetBaseUrl] - Base URL for Sonnet API (if using Sonnet)
    */
   constructor(options) {
     this.provider = options.provider || 'openai';
     
+    // Initialize the appropriate adapter
     if (this.provider === 'openai') {
-      this.client = new OpenAI({
+      this.adapter = new OpenAIAdapter({
         apiKey: options.apiKey
       });
     } else if (this.provider === 'sonnet') {
-      this.client = new SonnetClient({
+      this.adapter = new SonnetAdapter({
         apiKey: options.apiKey,
         baseUrl: options.sonnetBaseUrl
       });
@@ -28,10 +30,13 @@ class AIClient {
       throw new Error(`Unsupported AI provider: ${this.provider}`);
     }
     
+    // Get default models from the adapter
+    const defaultModels = this.adapter.getDefaultModels();
+    
     // Model configuration
     this.models = {
-      strong: options.model || (this.provider === 'openai' ? "gpt-4" : "claude-3-opus-20240229"),
-      weak: this.provider === 'openai' ? "gpt-3.5-turbo" : "claude-3-haiku-20240307"
+      strong: options.model || defaultModels.strong,
+      weak: defaultModels.weak
     };
   }
 
@@ -69,15 +74,8 @@ class AIClient {
     }
     
     try {
-      let completion;
-      
-      if (this.provider === 'openai') {
-        completion = await this.client.chat.completions.create(requestOptions);
-        return completion.choices[0].message.content;
-      } else if (this.provider === 'sonnet') {
-        completion = await this.client.createChatCompletion(requestOptions);
-        return completion.choices[0].message.content;
-      }
+      const completion = await this.adapter.createChatCompletion(requestOptions);
+      return completion.choices[0].message.content;
     } catch (error) {
       console.error(`Error generating AI completion with ${this.provider}:`, error);
       throw error;
