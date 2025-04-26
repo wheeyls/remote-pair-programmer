@@ -102,7 +102,8 @@ ${Object.entries(fileContents).map(([filename, content]) =>
     // 5. Parse the AI response
     let modifications;
     try {
-      modifications = JSON.parse(aiResponse);
+      // The response might already be a JSON string from the tool use
+      modifications = typeof aiResponse === 'object' ? aiResponse : JSON.parse(aiResponse);
     } catch (error) {
       console.error('Error parsing JSON response:', error);
       console.log('Raw response:', aiResponse);
