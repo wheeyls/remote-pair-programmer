@@ -78,8 +78,8 @@ jobs:
           openai-api-key: ${{ secrets.SONNET_API_KEY }}
           ai-provider: 'sonnet'
           model: 'claude-3-opus-20240229'
-          strong-model: 'claude-3-opus-20240229'
-          weak-model: 'claude-3-haiku-20240307'
+          strong-model: 'claude-3-7-sonnet-20250219'
+          weak-model: 'claude-3-5-haiku-20241022'
 ```
 
 ## Configuration
