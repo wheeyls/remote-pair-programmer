@@ -1,4 +1,5 @@
 const { Octokit } = require('@octokit/rest');
+const processRequest = require('../utils/processRequest');
 
 // Initialize GitHub API client
 const octokit = new Octokit({
@@ -8,7 +9,7 @@ const octokit = new Octokit({
 /**
  * Process a GitHub pull request
  */
-async function processPullRequest(aiClient) {
+async function processPullRequest(aiClient, triggerPhrase) {
   const prNumber = process.env.PR_NUMBER;
   const owner = process.env.REPO_OWNER;
   const repo = process.env.REPO_NAME;
@@ -31,41 +32,34 @@ async function processPullRequest(aiClient) {
       }
     });
 
-    // Generate AI response based on PR content
-    const aiResponse = await generateAIResponse(aiClient, {
-      title: pullRequest.title,
-      description: pullRequest.body,
-      diff: diff
-    });
+    // Combine PR title and description as the request text
+    const requestText = `${pullRequest.title}\n\n${pullRequest.body || ''}`;
 
-    // Post comment on PR
-    await octokit.issues.createComment({
-      owner,
-      repo,
-      issue_number: prNumber,
-      body: aiResponse
+    // Process the request using the shared function
+    await processRequest({
+      aiClient,
+      triggerPhrase,
+      requestText,
+      context: {
+        owner,
+        repo,
+        prNumber,
+        diff
+      },
+      octokit
     });
 
   } catch (error) {
     console.error('Error processing pull request:', error);
-    throw error;
-  }
-}
-
-/**
- * Generate an AI response
- */
-async function generateAIResponse(aiClient, context, promptType = 'PR_REVIEW', modelStrength = 'strong') {
-  try {
-    const PROMPTS = require('../prompts');
-    return await aiClient.generateCompletion({
-      prompt: PROMPTS[promptType],
-      context: context,
-      modelStrength: modelStrength,
-      temperature: 0.7
+    
+    // Post error message as a comment on the PR
+    await octokit.issues.createComment({
+      owner,
+      repo,
+      issue_number: prNumber,
+      body: `❌ I encountered an error while processing this PR:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or contact support.`
     });
-  } catch (error) {
-    console.error('Error generating AI response:', error);
+    
     throw error;
   }
 }

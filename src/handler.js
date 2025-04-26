@@ -22,7 +22,7 @@ const TRIGGER_PHRASE = process.env.TRIGGER_PHRASE || '@github-ai-bot';
 const command = process.argv[2];
 
 if (command === 'process-pr') {
-  processPullRequest(aiClient).catch(console.error);
+  processPullRequest(aiClient, TRIGGER_PHRASE).catch(console.error);
 } else if (command === 'process-comment') {
   processComment(aiClient, TRIGGER_PHRASE).catch(console.error);
 } else if (command === 'process-issue') {
