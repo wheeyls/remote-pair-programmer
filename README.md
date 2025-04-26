@@ -78,6 +78,8 @@ jobs:
           openai-api-key: ${{ secrets.SONNET_API_KEY }}
           ai-provider: 'sonnet'
           model: 'claude-3-opus-20240229'
+          strong-model: 'claude-3-opus-20240229'
+          weak-model: 'claude-3-haiku-20240307'
 ```
 
 ## Configuration
@@ -100,7 +102,9 @@ To add your API key to GitHub Actions:
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
 | `openai-api-key` | API key for OpenAI or Sonnet | Yes | N/A |
-| `model` | AI model to use | No | `gpt-4` |
+| `model` | Default AI model to use | No | `gpt-4` |
+| `strong-model` | Strong AI model for complex tasks | No | Provider default |
+| `weak-model` | Weak AI model for simple tasks | No | Provider default |
 | `trigger-phrase` | Phrase to trigger the agent | No | `@github-ai-bot` |
 | `ai-provider` | AI provider to use (openai or sonnet) | No | `openai` |
 | `sonnet-base-url` | Base URL for Sonnet API (if using Sonnet) | No | `https://api.sonnet.io/v1` |

@@ -11,6 +11,8 @@ const octokit = new Octokit({
 const aiClient = new AIClient({
   apiKey: process.env.AI_API_KEY,
   model: process.env.AI_MODEL || 'gpt-4',
+  strongModel: process.env.STRONG_AI_MODEL,
+  weakModel: process.env.WEAK_AI_MODEL,
   provider: process.env.AI_PROVIDER || 'openai',
   sonnetBaseUrl: process.env.SONNET_BASE_URL
 });

@@ -33,10 +33,10 @@ class AIClient {
     // Get default models from the adapter
     const defaultModels = this.adapter.getDefaultModels();
     
-    // Model configuration
+    // Model configuration with override options
     this.models = {
-      strong: options.model || defaultModels.strong,
-      weak: defaultModels.weak
+      strong: options.strongModel || options.model || defaultModels.strong,
+      weak: options.weakModel || defaultModels.weak
     };
   }
 

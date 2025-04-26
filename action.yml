@@ -11,9 +11,17 @@ inputs:
     description: 'API key for OpenAI or Sonnet'
     required: true
   model:
-    description: 'AI model to use'
+    description: 'Default AI model to use'
     required: false
     default: 'gpt-4'
+  strong-model:
+    description: 'Strong AI model to use for complex tasks'
+    required: false
+    default: ''
+  weak-model:
+    description: 'Weak AI model to use for simple tasks'
+    required: false
+    default: ''
   trigger-phrase:
     description: 'Phrase to trigger the agent'
     required: false
@@ -58,6 +66,8 @@ runs:
         EVENT_TYPE: ${{ github.event_name }}
         AI_API_KEY: ${{ inputs.openai-api-key }}
         AI_MODEL: ${{ inputs.model }}
+        STRONG_AI_MODEL: ${{ inputs.strong-model }}
+        WEAK_AI_MODEL: ${{ inputs.weak-model }}
         TRIGGER_PHRASE: ${{ inputs.trigger-phrase }}
         AI_PROVIDER: ${{ inputs.ai-provider }}
         SONNET_BASE_URL: ${{ inputs.sonnet-base-url }}
