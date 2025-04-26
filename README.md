@@ -19,6 +19,8 @@ on:
     types: [opened, synchronize, reopened]
   issue_comment:
     types: [created]
+  issues:
+    types: [opened]
 
 permissions:
   contents: write
@@ -54,6 +56,8 @@ on:
     types: [opened, synchronize, reopened]
   issue_comment:
     types: [created]
+  issues:
+    types: [opened]
 
 permissions:
   contents: write
@@ -111,6 +115,8 @@ To add your API key to GitHub Actions:
 
 ## Examples
 
+### PR Comments
+
 Comment on a PR with:
 
 ```
@@ -122,6 +128,24 @@ The agent will:
 2. Generate appropriate code changes
 3. Commit directly to the PR branch
 4. Reply with a summary of changes
+
+### Issues
+
+Create a new issue with the trigger phrase in the title or body:
+
+```
+Title: @github-ai-bot Add pagination to the user list
+
+Body:
+Please implement pagination for the user list component.
+We should show 10 users per page and add next/previous buttons.
+```
+
+The agent will:
+1. Create a new branch
+2. Make the requested changes
+3. Open a PR with those changes
+4. Link back to the original issue
 
 ## License
 

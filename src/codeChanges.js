@@ -22,32 +22,63 @@ const octokit = new Octokit({
  */
 async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
   try {
-    // 1. Get PR details and files
-    const { data: pullRequest } = await octokit.pulls.get({
-      owner,
-      repo,
-      pull_number: prNumber
-    });
+    let files = [];
+    let branch = '';
     
-    const { data: files } = await octokit.pulls.listFiles({
-      owner,
-      repo,
-      pull_number: prNumber
-    });
+    // Check if we're working with a PR or an issue
+    const isPR = await isPullRequest(owner, repo, prNumber);
     
-    // 2. Checkout the PR branch
-    const branch = pullRequest.head.ref;
-    execSync(`git fetch origin ${branch} && git checkout ${branch}`);
+    if (isPR) {
+      // 1. Get PR details and files
+      const { data: pullRequest } = await octokit.pulls.get({
+        owner,
+        repo,
+        pull_number: prNumber
+      });
+      
+      const { data: prFiles } = await octokit.pulls.listFiles({
+        owner,
+        repo,
+        pull_number: prNumber
+      });
+      
+      files = prFiles;
+      branch = pullRequest.head.ref;
+      
+      // 2. Checkout the PR branch
+      execSync(`git fetch origin ${branch} && git checkout ${branch}`);
+    }
+    // If it's an issue, we're already on the correct branch from the caller
     
     // 3. Get file contents for relevant files
     const fileContents = {};
-    for (const file of files) {
-      if (file.status !== 'removed') {
+    
+    if (isPR && files.length > 0) {
+      // If it's a PR, use the files from the PR
+      for (const file of files) {
+        if (file.status !== 'removed') {
+          try {
+            const content = fs.readFileSync(file.filename, 'utf8');
+            fileContents[file.filename] = content;
+          } catch (err) {
+            console.warn(`Could not read file ${file.filename}: ${err.message}`);
+          }
+        }
+      }
+    } else {
+      // If it's an issue or an empty PR, get all files in the repo
+      // This is a simplified approach - in a real implementation, you might want to be more selective
+      const allFiles = getAllRepoFiles();
+      for (const file of allFiles) {
         try {
-          const content = fs.readFileSync(file.filename, 'utf8');
-          fileContents[file.filename] = content;
+          if (file.endsWith('.js') || file.endsWith('.jsx') || file.endsWith('.ts') || 
+              file.endsWith('.tsx') || file.endsWith('.json') || file.endsWith('.md') ||
+              file.endsWith('.css') || file.endsWith('.html')) {
+            const content = fs.readFileSync(file, 'utf8');
+            fileContents[file] = content;
+          }
         } catch (err) {
-          console.warn(`Could not read file ${file.filename}: ${err.message}`);
+          console.warn(`Could not read file ${file}: ${err.message}`);
         }
       }
     }
@@ -121,6 +152,41 @@ Requested by comment on PR #${prNumber}`;
       success: false,
       error: error.message
     };
+  }
+}
+
+/**
+ * Check if the given number refers to a PR or an issue
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} number - PR or issue number
+ * @returns {Promise<boolean>} - True if it's a PR, false if it's an issue
+ */
+async function isPullRequest(owner, repo, number) {
+  try {
+    await octokit.pulls.get({
+      owner,
+      repo,
+      pull_number: number
+    });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Get all files in the repository
+ * @returns {Array<string>} - Array of file paths
+ */
+function getAllRepoFiles() {
+  try {
+    // Use git to list all tracked files
+    const result = execSync('git ls-files').toString().trim();
+    return result.split('\n');
+  } catch (error) {
+    console.error('Error getting repo files:', error);
+    return [];
   }
 }
 
