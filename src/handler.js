@@ -1,5 +1,5 @@
 const { Octokit } = require('@octokit/rest');
-const { OpenAI } = require('openai');
+const AIClient = require('./aiClient');
 const { modifyCode } = require('./codeChanges');
 const PROMPTS = require('./prompts');
 
@@ -8,7 +8,7 @@ const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 });
 
-const openai = new OpenAI({
+const aiClient = new AIClient({
   apiKey: process.env.AI_API_KEY
 });
 
@@ -80,7 +80,7 @@ async function processComment() {
         repo,
         prNumber,
         requestText: commentBody,
-        openai
+        openai: aiClient.openai // Pass the OpenAI instance from our client
       });
 
       let responseBody;
@@ -99,11 +99,22 @@ async function processComment() {
       });
     } else {
       // This is a regular comment, just respond with AI
-      const aiResponse = await generateAIResponse({
-        comment: commentBody,
-        context: `PR #${prNumber}`,
-        promptType: 'COMMENT_RESPONSE'
-      });
+      // Use strong model for complex questions, weak model for simple responses
+      const isComplexQuestion = commentBody.length > 100 || 
+        commentBody.includes('explain') || 
+        commentBody.includes('how') || 
+        commentBody.includes('why');
+      
+      const modelStrength = isComplexQuestion ? 'strong' : 'weak';
+      
+      const aiResponse = await generateAIResponse(
+        {
+          comment: commentBody,
+          context: `PR #${prNumber}`
+        }, 
+        'COMMENT_RESPONSE',
+        modelStrength
+      );
 
       // Post AI response as a reply
       await octokit.issues.createComment({
@@ -126,24 +137,14 @@ async function processComment() {
   }
 }
 
-async function generateAIResponse(context, promptType = 'PR_REVIEW') {
+async function generateAIResponse(context, promptType = 'PR_REVIEW', modelStrength = 'strong') {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: PROMPTS[promptType]
-        },
-        {
-          role: "user",
-          content: JSON.stringify(context)
-        }
-      ],
-      temperature: 0.7,
+    return await aiClient.generateCompletion({
+      prompt: PROMPTS[promptType],
+      context: context,
+      modelStrength: modelStrength,
+      temperature: 0.7
     });
-
-    return completion.choices[0].message.content;
   } catch (error) {
     console.error('Error generating AI response:', error);
     throw error;

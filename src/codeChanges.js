@@ -3,6 +3,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const PROMPTS = require('./prompts');
+const AIClient = require('./aiClient');
 
 // Initialize GitHub API client
 const octokit = new Octokit({
@@ -51,30 +52,29 @@ async function modifyCode({ owner, repo, prNumber, requestText, openai }) {
       }
     }
     
+    // Create AI client for this request
+    const aiClient = new AIClient({
+      apiKey: process.env.AI_API_KEY || openai.apiKey
+    });
+    
     // 4. Ask AI to analyze the request and determine what changes to make
-    const aiResponse = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: PROMPTS.CODE_MODIFICATION
-        },
-        {
-          role: "user",
-          content: `Request: ${requestText}
+    const contextContent = `Request: ${requestText}
           
 Files in the PR:
 ${Object.entries(fileContents).map(([filename, content]) => 
   `--- ${filename} ---\n${content}\n`
-).join('\n')}`
-        }
-      ],
+).join('\n')}`;
+
+    const aiResponse = await aiClient.generateCompletion({
+      prompt: PROMPTS.CODE_MODIFICATION,
+      context: contextContent,
+      modelStrength: 'strong', // Use strong model for code modifications
       temperature: 0.2,
-      response_format: { type: "json_object" }
+      responseFormat: { type: "json_object" }
     });
     
     // 5. Parse the AI response
-    const modifications = JSON.parse(aiResponse.choices[0].message.content);
+    const modifications = JSON.parse(aiResponse);
     
     // 6. Apply the changes to the files
     for (const change of modifications.changes) {
