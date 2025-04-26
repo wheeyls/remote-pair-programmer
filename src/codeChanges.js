@@ -139,9 +139,12 @@ ${Object.entries(fileContents).map(([filename, content]) =>
     }
     
     // 7. Commit and push the changes
-    const commitMessage = `AI: ${modifications.explanation}
+    let commitMessage = `AI: ${modifications.explanation}
     
 Requested by comment on PR #${prNumber}`;
+    
+    // Sanitize the commit message for command line safety
+    commitMessage = sanitizeForShell(commitMessage);
     
     execSync('git config user.name "GitHub AI Actions"');
     execSync('git config user.email "github-actions[bot]@users.noreply.github.com"');
@@ -181,6 +184,22 @@ async function isPullRequest(owner, repo, number) {
   } catch (error) {
     return false;
   }
+}
+
+/**
+ * Sanitize a string for safe use in shell commands
+ * @param {string} str - The string to sanitize
+ * @returns {string} - Sanitized string safe for shell command usage
+ */
+function sanitizeForShell(str) {
+  // Replace double quotes with escaped double quotes
+  // Remove any characters that could cause command injection
+  return str
+    .replace(/"/g, '\\"')
+    .replace(/`/g, '\\`')
+    .replace(/\$/g, '\\$')
+    .replace(/[&|;()<>]/g, '')
+    .replace(/\n/g, ' ');
 }
 
 /**
