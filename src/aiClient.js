@@ -1,5 +1,4 @@
 const OpenAIAdapter = require('./aiAdapters/openai');
-const SonnetAdapter = require('./aiAdapters/sonnet');
 const AnthropicAdapter = require('./aiAdapters/anthropic');
 
 /**
@@ -21,11 +20,6 @@ class AIClient {
     if (this.provider === 'openai') {
       this.adapter = new OpenAIAdapter({
         apiKey: options.apiKey
-      });
-    } else if (this.provider === 'sonnet') {
-      this.adapter = new SonnetAdapter({
-        apiKey: options.apiKey,
-        baseUrl: options.sonnetBaseUrl
       });
     } else if (this.provider === 'anthropic') {
       this.adapter = new AnthropicAdapter({

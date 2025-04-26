@@ -12,7 +12,7 @@ const aiClient = new AIClient({
   strongModel: process.env.STRONG_AI_MODEL,
   weakModel: process.env.WEAK_AI_MODEL,
   provider: process.env.AI_PROVIDER || 'openai',
-  sonnetBaseUrl: process.env.SONNET_BASE_URL
+  anthropicBaseUrl: process.env.ANTHROPIC_BASE_URL
 });
 
 // Get trigger phrase from environment or use default
