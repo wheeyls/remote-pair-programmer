@@ -14,7 +14,7 @@ class AnthropicAdapter extends BaseAdapter {
     super(options);
 
     this.client = new Anthropic({
-      apiKey: this.apiKey
+      apiKey: this.apiKey,
     });
   }
 
@@ -30,43 +30,48 @@ class AnthropicAdapter extends BaseAdapter {
   async createChatCompletion(options) {
     try {
       // Extract system message from the messages array
-      let systemMessage = "";
+      let systemMessage = '';
       let userMessages = [];
-      
+
       for (const message of options.messages) {
-        if (message.role === "system") {
+        if (message.role === 'system') {
           systemMessage = message.content;
         } else {
           userMessages.push(message);
         }
       }
-      
+
       // Convert OpenAI-style options to Anthropic format
       const anthropicOptions = {
         model: options.model,
         messages: userMessages,
         temperature: options.temperature,
-        system: systemMessage
+        system: systemMessage,
+        max_tokens: options.max_tokens || 8000,
       };
 
       // Handle response format if specified
-      if (options.response_format && options.response_format.type === 'json_object') {
-        anthropicOptions.system = (anthropicOptions.system ? anthropicOptions.system + "\n\n" : "") + 
-          "Please provide your response as a valid JSON object.";
+      if (
+        options.response_format &&
+        options.response_format.type === 'json_object'
+      ) {
+        anthropicOptions.system =
+          (anthropicOptions.system ? anthropicOptions.system + '\n\n' : '') +
+          'Please provide your response as a valid JSON object.';
       }
 
       const completion = await this.client.messages.create(anthropicOptions);
-      
+
       // Convert Anthropic response to OpenAI-like format for compatibility
       return {
         choices: [
           {
             message: {
               content: completion.content[0].text,
-              role: 'assistant'
-            }
-          }
-        ]
+              role: 'assistant',
+            },
+          },
+        ],
       };
     } catch (error) {
       console.error('Error generating Anthropic completion:', error);
