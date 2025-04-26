@@ -1,6 +1,6 @@
 # GitHub AI Actions
 
-A GitHub Actions-based bot that automatically responds to pull requests and PR comments using AI-generated content. This bot can help automate code reviews, answer questions, and assist with repository maintenance tasks.
+A GitHub Actions-based AI coding agent that not only responds to pull requests and comments but can also commit code changes directly to PRs. This agent acts like a remote pair programmer, helping you develop code even when you're away from your computer.
 
 ## Overview
 
@@ -9,9 +9,10 @@ This project provides a GitHub Actions workflow that:
 1. Triggers on pull request events (opened, synchronize, reopened)
 2. Responds to comments on pull requests
 3. Uses AI to generate contextually relevant responses
-4. Posts the AI-generated content back to the pull request
+4. Can commit code changes directly to the PR branch
+5. Enables continuous development through conversation
 
-The bot leverages OpenAI's GPT models to create intelligent responses based on the PR content or comment context.
+The agent leverages OpenAI's GPT models to understand code context, implement requested changes, and push commits - all through natural language interactions in PR comments.
 
 ## Installation
 
@@ -66,7 +67,15 @@ These permissions are already configured in the workflow file.
 
 ### Branch Protection (Optional)
 
-If you have branch protection rules, ensure that GitHub Actions has permission to push to protected branches if you want the bot to commit changes directly.
+If you have branch protection rules, ensure that GitHub Actions has permission to push to protected branches if you want the agent to commit changes directly.
+
+### PR Access Configuration
+
+For the AI agent to work effectively with PRs:
+
+1. **Allow GitHub Actions to create and approve pull requests** in your repository settings
+2. **Consider creating a dedicated service account** if you want the commits to come from a specific user rather than the GitHub Actions bot
+3. **Set up branch protection rules** that still allow the AI agent to push to branches but maintain other protections
 
 ## Usage
 
@@ -79,9 +88,9 @@ The bot will automatically respond to new pull requests with AI-generated commen
 
 No user action is required to trigger this.
 
-### Interacting with the Bot via Comments
+### Interacting with the AI Agent via Comments
 
-Users can interact with the bot by leaving comments on pull requests. The bot will process the comment and respond with AI-generated content.
+Users can interact with the agent by mentioning it in PR comments. The agent will process the comment, respond with AI-generated content, and can commit code changes directly to the PR.
 
 Example comment triggers:
 
@@ -94,8 +103,20 @@ Example comment triggers:
 ```
 
 ```
-@github-ai-bot suggest improvements for this function
+@github-ai-bot implement a function that sorts this array
 ```
+
+```
+@github-ai-bot refactor this code to use async/await
+```
+
+The agent will:
+1. Analyze the PR context and code changes
+2. Generate appropriate code modifications based on your request
+3. Commit the changes directly to the PR branch
+4. Reply with a summary of what was changed and why
+
+You can also tag PRs with the `ai-assist` label to have the agent automatically review and suggest improvements.
 
 ### Local Testing
 
@@ -120,14 +141,17 @@ For local development and testing:
 
 - `/.github/workflows/main.yml` - GitHub Actions workflow configuration
 - `/src/handler.js` - Main handler for processing events and coordinating responses
+- `/src/codeChanges.js` - Logic for analyzing, modifying, and committing code changes
+- `/src/prompts.js` - System prompts for different AI tasks
 
 ### Adding New Features
 
-To extend the bot's capabilities:
+To extend the agent's capabilities:
 
 1. **Add new event handlers** - Extend the handler.js file with new functions for different event types
-2. **Enhance AI prompts** - Modify the system prompts to improve responses
+2. **Enhance AI prompts** - Modify the system prompts to improve responses and code generation
 3. **Add support for additional GitHub events** - Update the workflow file to trigger on more event types
+4. **Improve code modification logic** - Enhance the code parsing and modification capabilities
 
 ### Testing Changes
 
