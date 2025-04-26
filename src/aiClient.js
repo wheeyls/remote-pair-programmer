@@ -73,6 +73,18 @@ class AIClient {
       requestOptions.response_format = responseFormat;
     }
     
+    // Log the inputs for debugging
+    console.log('AI Request:', {
+      provider: this.provider,
+      model,
+      modelStrength,
+      temperature,
+      responseFormat: responseFormat ? JSON.stringify(responseFormat) : 'none',
+      promptLength: prompt.length,
+      contextType: typeof context,
+      contextLength: typeof context === 'string' ? context.length : JSON.stringify(context).length
+    });
+    
     try {
       const completion = await this.adapter.createChatCompletion(requestOptions);
       return completion.choices[0].message.content;
