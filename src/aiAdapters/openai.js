@@ -12,9 +12,9 @@ class OpenAIAdapter extends BaseAdapter {
    */
   constructor(options) {
     super(options);
-    
+
     this.client = new OpenAI({
-      apiKey: this.apiKey
+      apiKey: this.apiKey,
     });
   }
 
@@ -43,8 +43,8 @@ class OpenAIAdapter extends BaseAdapter {
    */
   getDefaultModels() {
     return {
-      strong: "gpt-4",
-      weak: "gpt-3.5-turbo"
+      strong: 'gpt-4.1',
+      weak: 'gpt-4.1-mini',
     };
   }
 }
