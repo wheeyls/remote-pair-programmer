@@ -50,23 +50,52 @@ class AnthropicAdapter extends BaseAdapter {
         max_tokens: options.max_tokens || 8000,
       };
 
-      // Handle response format if specified
+      // Handle response format if specified - use tools for JSON output
       if (
         options.response_format &&
         options.response_format.type === 'json_object'
       ) {
-        anthropicOptions.system =
-          (anthropicOptions.system ? anthropicOptions.system + '\n\n' : '') +
-          'Please provide your response as a valid JSON object.';
+        // Add JSON schema tool
+        anthropicOptions.tools = [
+          {
+            name: "json_response",
+            description: "Generate a structured JSON response",
+            input_schema: {
+              type: "object",
+              properties: {
+                response: {
+                  type: "object",
+                  description: "The JSON response object"
+                }
+              },
+              required: ["response"]
+            }
+          }
+        ];
+        
+        // Set tool choice to force using the JSON tool
+        anthropicOptions.tool_choice = {
+          type: "tool",
+          name: "json_response"
+        };
       }
 
       const completion = await this.client.messages.create(anthropicOptions);
-
+      
       // Convert Anthropic response to OpenAI-like format for compatibility
-      // Make sure we're handling the response format correctly
       let content = '';
-      if (completion.content && Array.isArray(completion.content) && completion.content.length > 0) {
-        content = completion.content[0].text || '';
+      
+      // Check if we have tool use in the response (for JSON responses)
+      if (completion.content && Array.isArray(completion.content)) {
+        for (const block of completion.content) {
+          if (block.type === 'tool_use' && block.name === 'json_response') {
+            // Extract the JSON from the tool use
+            content = JSON.stringify(block.input.response);
+            break;
+          } else if (block.type === 'text') {
+            content = block.text || '';
+          }
+        }
       }
 
       return {

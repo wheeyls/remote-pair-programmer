@@ -29,9 +29,6 @@ async function processIssue(aiClient, triggerPhrase) {
     // Check if this issue contains the trigger phrase
     // Hey Monty something is wrong here, can you look into it?
     if (!issueTitle.includes(triggerPhrase) && !issueBody.includes(triggerPhrase)) {
-      console.log(triggerPhrase);
-      console.log(issueBody);
-      console.log(issueTitle);
       console.log('Issue does not contain trigger phrase. Skipping.');
       console.log(JSON.stringify(issue));
       return;
