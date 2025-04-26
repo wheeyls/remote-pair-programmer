@@ -178,6 +178,8 @@ async function processIssue() {
 
     // Check if this issue contains the trigger phrase
     if (!issueTitle.includes(TRIGGER_PHRASE) && !issueBody.includes(TRIGGER_PHRASE)) {
+      console.log(issueBody);
+      console.log(issueTitle);
       console.log('Issue does not contain trigger phrase. Skipping.');
       return;
     }
