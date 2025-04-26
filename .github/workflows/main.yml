@@ -41,7 +41,7 @@ jobs:
           AI_MODEL: 'gpt-4.1'
           STRONG_AI_MODEL: 'gpt-4.1'
           WEAK_AI_MODEL: 'gpt-4.1-mini'
-          TRIGGER_PHRASE: '@github-ai-bot'
+          TRIGGER_PHRASE: 'Hey Monty'
           AI_PROVIDER: 'openai'
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
