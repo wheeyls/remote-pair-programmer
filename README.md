@@ -144,8 +144,10 @@ We should show 10 users per page and add next/previous buttons.
 The agent will:
 1. Create a new branch
 2. Make the requested changes
-3. Convert the issue directly into a PR
-4. Update the PR with the changes
+3. Push the changes to the branch
+4. Comment on the issue with a link to create a PR
+
+Note: Due to GitHub Actions permissions limitations, the bot cannot create PRs directly. Instead, it will provide a link for you to create the PR manually.
 
 ## License
 

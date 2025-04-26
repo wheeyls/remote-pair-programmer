@@ -98,24 +98,15 @@ async function processIssue(aiClient, triggerPhrase) {
       return;
     }
 
-    // Create a new PR directly instead of converting the issue
-    const { data: pullRequest } = await octokit.pulls.create({
-      owner,
-      repo,
-      title: `AI: ${result.explanation}`,
-      body: `Fixes #${issueNumber}\n\n**Changes made:**\n${result.explanation}\n\n**Modified files:**\n${result.changedFiles.map(f => `- \`${f}\``).join('\n')}`,
-      head: newBranch,
-      base: baseBranch
-    });
+    // Instead of creating a PR, just push the changes to the branch and comment on the issue
+    // This avoids the GitHub Actions permission limitation for creating PRs
     
-    const prNumber = pullRequest.number;
-    
-    // Comment on the issue with a link to the PR
+    // Comment on the issue with information about the changes and branch
     await octokit.issues.createComment({
       owner,
       repo,
       issue_number: issueNumber,
-      body: `✅ I've created a PR with the requested changes: #${prNumber}\n\n**Changes made:**\n${result.explanation}\n\n**Modified files:**\n${result.changedFiles.map(f => `- \`${f}\``).join('\n')}`
+      body: `✅ I've made the requested changes and pushed them to the branch \`${newBranch}\`.\n\n**Changes made:**\n${result.explanation}\n\n**Modified files:**\n${result.changedFiles.map(f => `- \`${f}\``).join('\n')}\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${owner}/${repo}/compare/${baseBranch}...${newBranch}?expand=1`
     });
 
   } catch (error) {
