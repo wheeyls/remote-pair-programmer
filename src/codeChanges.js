@@ -2,6 +2,7 @@ const { Octokit } = require('@octokit/rest');
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const PROMPTS = require('./prompts');
 
 // Initialize GitHub API client
 const octokit = new Octokit({
@@ -56,31 +57,7 @@ async function modifyCode({ owner, repo, prNumber, requestText, openai }) {
       messages: [
         {
           role: "system",
-          content: `You are an AI coding assistant that helps modify code based on user requests.
-          
-Your task is to:
-1. Analyze the user's request to modify code
-2. Determine which files need to be changed
-3. Provide the exact changes that should be made
-4. Format your response as a JSON object with the following structure:
-{
-  "changes": [
-    {
-      "filename": "path/to/file.js",
-      "operations": [
-        {
-          "type": "replace",
-          "lineStart": 10,
-          "lineEnd": 15,
-          "content": "// New code to replace the old code"
-        }
-      ]
-    }
-  ],
-  "explanation": "A brief explanation of the changes made"
-}
-
-Only include files that need to be modified. Be precise with line numbers.`
+          content: PROMPTS.CODE_MODIFICATION
         },
         {
           role: "user",
