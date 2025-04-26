@@ -67,7 +67,7 @@ class AnthropicAdapter extends BaseAdapter {
    */
   getDefaultModels() {
     return {
-      strong: 'claude-3-5-sonnet-latest',
+      strong: 'claude-3-7-sonnet-latest',
       weak: 'claude-3-haiku-latest',
     };
   }
