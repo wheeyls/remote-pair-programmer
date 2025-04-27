@@ -1,0 +1,29 @@
+# Node modules and dependencies
+node_modules
+npm-debug.log
+
+# Git and version control
+.git
+.gitignore
+.github
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Development files
+.vscode
+.idea
+*.log
+*.md
+!README.md
+
+# Test files
+tests
+coverage
+jest.config.js
+
+# Other unnecessary files
+.DS_Store
+.aider*

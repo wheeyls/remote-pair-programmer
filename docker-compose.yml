@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  worker:
+    build: .
+    container_name: github-ai-worker
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - AI_PROVIDER=${AI_PROVIDER}
+      - AI_API_KEY=${AI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - QUEUE_SERVICE_URL=${QUEUE_SERVICE_URL}
+      - QUEUE_AUTH_TOKEN=${QUEUE_AUTH_TOKEN}
+      - AI_MODEL=${AI_MODEL}
+      - STRONG_AI_MODEL=${STRONG_AI_MODEL}
+      - WEAK_AI_MODEL=${WEAK_AI_MODEL}
+      - TRIGGER_PHRASE=${TRIGGER_PHRASE}
+    volumes:
+      # Mount only the necessary files for development (optional)
+      - ./src:/app/src:ro
+    networks:
+      - ai-network
+
+networks:
+  ai-network:
+    driver: bridge
