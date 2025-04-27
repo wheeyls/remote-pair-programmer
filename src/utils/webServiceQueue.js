@@ -136,7 +136,7 @@ export class WebServiceQueue {
       const job = jobData;
       console.log(`Processing job ${job.id} of type ${job.name}`);
 
-      const result = await this.processCommand(job.name, job.payload);
+      const result = await this.processCommand(job.name, job.body);
 
       // Record successful completion
       const headers = {

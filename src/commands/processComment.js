@@ -3,7 +3,7 @@ import processRequest from '../utils/processRequest.js';
 
 // Initialize GitHub API client
 const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN
+  auth: process.env.GITHUB_TOKEN,
 });
 
 /**
@@ -17,7 +17,7 @@ async function processComment(aiClient, triggerPhrase, payload) {
     const { data: pullRequest } = await octokit.pulls.get({
       owner,
       repo,
-      pull_number: prNumber
+      pull_number: prNumber,
     });
 
     // Get PR diff for context
@@ -26,8 +26,8 @@ async function processComment(aiClient, triggerPhrase, payload) {
       repo,
       pull_number: prNumber,
       mediaType: {
-        format: 'diff'
-      }
+        format: 'diff',
+      },
     });
 
     // Process the request using the shared function
@@ -40,19 +40,19 @@ async function processComment(aiClient, triggerPhrase, payload) {
         repo,
         prNumber,
         diff,
-        pullRequest
+        pullRequest,
       },
-      octokit
+      octokit,
     });
   } catch (error) {
     console.error('Error processing comment:', error);
-    
+
     // Post error message as a reply
     await octokit.issues.createComment({
       owner,
       repo,
       issue_number: prNumber,
-      body: `> ${commentBody}\n\n❌ I encountered an error while processing your request:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or rephrase your request.`
+      body: `> ${commentBody}\n\n❌ I encountered an error while processing your request:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or rephrase your request.`,
     });
   }
 }
