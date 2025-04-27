@@ -48,10 +48,8 @@ export class WebServiceQueue {
     console.log(`Enqueueing command: ${commandType}`, payload);
 
     const job = {
-      id: `job-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      commandType,
-      payload,
-      addedAt: new Date().toISOString()
+      name: commandType,
+      body: payload,
     };
 
     // Add job to the queue via web service
@@ -136,9 +134,9 @@ export class WebServiceQueue {
 
     try {
       const job = jobData;
-      console.log(`Processing job ${job.id} of type ${job.commandType}`);
+      console.log(`Processing job ${job.id} of type ${job.name}`);
 
-      const result = await this.processCommand(job.commandType, job.payload);
+      const result = await this.processCommand(job.name, job.payload);
 
       // Record successful completion
       const headers = {
