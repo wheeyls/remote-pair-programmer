@@ -26,7 +26,8 @@ function initializeHandler(deps = {}) {
 
   // Initialize queue
   const queue = deps.queue || new Queue({
-    name: 'github-ai-agent'
+    name: 'github-ai-agent',
+    redisUrl: process.env.REDIS_URL
   });
 
   // Get trigger phrase from environment or use default
