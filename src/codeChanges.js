@@ -128,51 +128,60 @@ ${Object.entries(fileContents).map(([filename, content]) =>
       prompt: PROMPTS.CODE_MODIFICATION,
       context: contextContent,
       modelStrength: 'strong', // Use strong model for code modifications
-      temperature: 0.2,
-      responseFormat: { type: "json_object" }
+      temperature: 0.2
     });
     
-    // 5. Parse the AI response
-    let modifications;
-    try {
-      // The response might already be a JSON string from the tool use
-      modifications = typeof aiResponse === 'object' ? aiResponse : JSON.parse(aiResponse);
-    } catch (error) {
-      console.error('Error parsing JSON response:', error);
-      console.log('Raw response:', aiResponse);
-      throw new Error(`Failed to parse AI response as JSON: ${error.message}`);
+    // 5. Parse the AI response to extract search/replace blocks
+    const searchReplaceBlocks = extractSearchReplaceBlocks(aiResponse);
+    
+    if (searchReplaceBlocks.length === 0) {
+      throw new Error('No valid search/replace blocks found in AI response');
     }
     
-    // 6. Apply the changes to the files
-    for (const change of modifications.changes) {
-      const filename = change.filename;
-      let content = fileContents[filename] || '';
+    // 6. Apply the search/replace blocks to the files
+    const changedFiles = new Set();
+    const explanation = extractExplanation(aiResponse);
+    
+    for (const block of searchReplaceBlocks) {
+      const { filename, search, replace } = block;
+      changedFiles.add(filename);
       
-      // Apply operations in reverse order to avoid line number shifts
-      const sortedOperations = [...change.operations].sort((a, b) => b.lineStart - a.lineStart);
+      // Check if file exists
+      if (!fs.existsSync(filename) && search.trim() !== '') {
+        console.warn(`File ${filename} does not exist but has non-empty search content`);
+        continue;
+      }
       
-      for (const op of sortedOperations) {
-        if (op.type === 'replace') {
-          const lines = content.split('\n');
-          const beforeLines = lines.slice(0, op.lineStart - 1);
-          const afterLines = lines.slice(op.lineEnd);
-          const newLines = op.content.split('\n');
-          content = [...beforeLines, ...newLines, ...afterLines].join('\n');
+      // For new files with empty search section
+      if (search.trim() === '') {
+        // Ensure directory exists
+        const dir = path.dirname(filename);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
         }
+        
+        // Create new file with replace content
+        fs.writeFileSync(filename, replace, 'utf8');
+        continue;
       }
       
-      // Ensure directory exists
-      const dir = path.dirname(filename);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+      // For existing files
+      let content = fs.readFileSync(filename, 'utf8');
+      
+      // Replace the first occurrence of the search text with the replace text
+      if (!content.includes(search)) {
+        console.warn(`Search text not found in ${filename}`);
+        continue;
       }
+      
+      content = content.replace(search, replace);
       
       // Write the modified content back to the file
       fs.writeFileSync(filename, content, 'utf8');
     }
     
     // 7. Commit and push the changes
-    let commitMessage = `AI: ${modifications.explanation}
+    let commitMessage = `AI: ${explanation || 'Code changes requested'}
     
 Requested by comment on PR #${prNumber}`;
     
@@ -194,8 +203,8 @@ Requested by comment on PR #${prNumber}`;
     
     return {
       success: true,
-      explanation: modifications.explanation,
-      changedFiles: modifications.changes.map(c => c.filename)
+      explanation: explanation || 'Code changes applied successfully',
+      changedFiles: Array.from(changedFiles)
     };
   } catch (error) {
     console.error('Error modifying code:', error);
@@ -271,6 +280,45 @@ function getAllRepoFiles() {
     console.error('Error getting repo files:', error);
     return [];
   }
+}
+
+/**
+ * Extract search/replace blocks from AI response
+ * @param {string} response - The AI response text
+ * @returns {Array<Object>} - Array of search/replace blocks
+ */
+function extractSearchReplaceBlocks(response) {
+  const blocks = [];
+  const regex = /([^\n]+)\n```[^\n]*\n<<<<<<< SEARCH\n([\s\S]*?)=======\n([\s\S]*?)>>>>>>> REPLACE\n```/g;
+  
+  let match;
+  while ((match = regex.exec(response)) !== null) {
+    const [_, filename, search, replace] = match;
+    blocks.push({
+      filename: filename.trim(),
+      search,
+      replace
+    });
+  }
+  
+  return blocks;
+}
+
+/**
+ * Extract explanation from AI response
+ * @param {string} response - The AI response text
+ * @returns {string} - Extracted explanation
+ */
+function extractExplanation(response) {
+  // Look for explanation at the beginning of the response, before any search/replace blocks
+  const explanationRegex = /^([\s\S]*?)(?:[^\n]+\n```[^\n]*\n<<<<<<< SEARCH)/;
+  const match = response.match(explanationRegex);
+  
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  
+  return '';
 }
 
 export {
