@@ -83,9 +83,45 @@ export async function runHandler(command, deps = {}) {
   const prNumber = process.env.PR_NUMBER;
 
   if (command === 'process-issue') {
-    const issueNumber = prNumber;
-
-    return queue.enqueue(command, { owner, repo, issueNumber });
+    console.log(`Fetching issue #${prNumber} for ${owner}/${repo}`);
+    console.log(`Using GitHub token: ${process.env.GITHUB_TOKEN ? 'Token provided' : 'No token'}`);
+    
+    try {
+      // Get issue details with explicit authentication
+      const { data: issue } = await octokit.issues.get({
+        owner,
+        repo,
+        issue_number: parseInt(prNumber, 10),
+        headers: {
+          authorization: `token ${process.env.GITHUB_TOKEN}`
+        }
+      });
+      
+      return queue.enqueue(command, { 
+        owner, 
+        repo, 
+        issueNumber: parseInt(prNumber, 10),
+        issue,
+        triggerPhrase: process.env.TRIGGER_PHRASE || '@github-ai-bot'
+      });
+      
+    } catch (issueError) {
+      console.error(`Error fetching issue #${prNumber}:`, issueError);
+      console.log(`Status: ${issueError.status}, Message: ${issueError.message}`);
+      
+      // Create a minimal payload even if we couldn't fetch the issue
+      return queue.enqueue(command, {
+        owner,
+        repo,
+        issueNumber: parseInt(prNumber, 10),
+        issue: {
+          title: 'Unknown Issue',
+          body: '',
+          number: parseInt(prNumber, 10)
+        },
+        triggerPhrase: process.env.TRIGGER_PHRASE || '@github-ai-bot'
+      });
+    }
   } else if (command === 'process-comment') {
     const commentId = process.env.COMMENT_ID;
     const commentBody = process.env.COMMENT_BODY;
