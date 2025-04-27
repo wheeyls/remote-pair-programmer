@@ -24,7 +24,9 @@ const config = {
     "<rootDir>/tests/setup.js"
   ],
   // Add support for ES modules in Jest
-  extensionsToTreatAsEsm: ['.js'],
+  // we don't need to set the .js extension in the test files,
+  // that is determined by the module type in package.json
+  extensionsToTreatAsEsm: [],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1'
   }
