@@ -9,12 +9,8 @@ const octokit = new Octokit({
 /**
  * Process a comment on a GitHub PR
  */
-async function processComment(aiClient, triggerPhrase) {
-  const commentId = process.env.COMMENT_ID;
-  const prNumber = process.env.PR_NUMBER;
-  const owner = process.env.REPO_OWNER;
-  const repo = process.env.REPO_NAME;
-  const commentBody = process.env.COMMENT_BODY;
+async function processComment(aiClient, triggerPhrase, payload) {
+  const { commentId, prNumber, owner, repo, commentBody } = payload;
 
   try {
     // Get PR details to provide context

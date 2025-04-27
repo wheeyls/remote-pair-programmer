@@ -10,10 +10,8 @@ const octokit = new Octokit({
 /**
  * Process a GitHub issue and convert it to a PR with code changes
  */
-async function processIssue(aiClient, triggerPhrase) {
-  const issueNumber = process.env.PR_NUMBER; // This will be the issue number in this context
-  const owner = process.env.REPO_OWNER;
-  const repo = process.env.REPO_NAME;
+async function processIssue(aiClient, triggerPhrase, payload) {
+  const { issueNumber, owner, repo } = payload;
 
   try {
     // Get issue details

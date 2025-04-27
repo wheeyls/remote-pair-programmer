@@ -20,45 +20,52 @@ import processReviewComment from './commands/processReviewComment.js';
  */
 export function initializeHandler(deps = {}) {
   // Use injected dependencies or create new instances
-  const aiClient = deps.aiClient || new AIClient({
-    apiKey: process.env.AI_PROVIDER === 'anthropic' ? process.env.ANTHROPIC_API_KEY : process.env.AI_API_KEY,
-    model: process.env.AI_MODEL || 'gpt-4',
-    strongModel: process.env.STRONG_AI_MODEL,
-    weakModel: process.env.WEAK_AI_MODEL,
-    provider: process.env.AI_PROVIDER || 'openai'
-  });
+  const aiClient =
+    deps.aiClient ||
+    new AIClient({
+      apiKey:
+        process.env.AI_PROVIDER === 'anthropic'
+          ? process.env.ANTHROPIC_API_KEY
+          : process.env.AI_API_KEY,
+      model: process.env.AI_MODEL || 'gpt-4',
+      strongModel: process.env.STRONG_AI_MODEL,
+      weakModel: process.env.WEAK_AI_MODEL,
+      provider: process.env.AI_PROVIDER || 'openai',
+    });
 
   // Initialize web service queue
-  const queue = deps.queue || createQueue({
-    name: 'github-ai-agent',
-    baseUrl: process.env.QUEUE_SERVICE_URL,
-    authToken: process.env.QUEUE_AUTH_TOKEN
-  });
+  const queue =
+    deps.queue ||
+    createQueue({
+      name: 'github-ai-agent',
+      baseUrl: process.env.QUEUE_SERVICE_URL,
+      authToken: process.env.QUEUE_AUTH_TOKEN,
+    });
 
   // Get trigger phrase from environment or use default
   const TRIGGER_PHRASE = process.env.TRIGGER_PHRASE || '@github-ai-bot';
 
   // Register command handlers
   queue.registerHandler('process-pr', async (payload) => {
-    return processPullRequest(aiClient, TRIGGER_PHRASE);
+    return processPullRequest(aiClient, TRIGGER_PHRASE, payload);
   });
 
   queue.registerHandler('process-comment', async (payload) => {
-    return processComment(aiClient, TRIGGER_PHRASE);
+    return processComment(aiClient, TRIGGER_PHRASE, payload);
   });
 
   queue.registerHandler('process-issue', async (payload) => {
-    return processIssue(aiClient, TRIGGER_PHRASE);
+    return processIssue(aiClient, TRIGGER_PHRASE, payload);
   });
-  
+
   queue.registerHandler('process-review-comment', async (payload) => {
-    return processReviewComment(aiClient, TRIGGER_PHRASE);
+    return processReviewComment(aiClient, TRIGGER_PHRASE, payload);
   });
 
   return {
     aiClient,
     queue,
-    TRIGGER_PHRASE
+    TRIGGER_PHRASE,
   };
 }
 
@@ -70,11 +77,32 @@ export function initializeHandler(deps = {}) {
  */
 export async function runHandler(command, deps = {}) {
   const { queue } = initializeHandler(deps);
-  
-  if (command === 'process-pr' || command === 'process-comment' || command === 'process-issue' || command === 'process-review-comment') {
-    return queue.enqueue(command, {});
+
+  const owner = process.env.REPO_OWNER;
+  const repo = process.env.REPO_NAME;
+  const prNumber = process.env.PR_NUMBER;
+
+  if (command === 'process-issue') {
+    const issueNumber = prNumber;
+
+    return queue.enqueue(command, { owner, repo, issueNumber });
+  } else if (command === 'process-comment') {
+    const commentId = process.env.COMMENT_ID;
+    const commentBody = process.env.COMMENT_BODY;
+
+    return queue.enqueue(command, { owner, repo, prNumber, commentId, commentBody });
+  } else if (command === 'process-review-comment') {
+    const commentId = process.env.COMMENT_ID;
+    const commentBody = process.env.COMMENT_BODY;
+
+    return queue.enqueue(command, { owner, repo, prNumber, commentId, commentBody });
+
+  } else if (command === 'process-pr') {
+    return queue.enqueue(command, { owner, repo, prNumber });
   } else {
-    console.error('Invalid command. Use: process-pr, process-comment, process-issue, or process-review-comment');
+    console.error(
+      'Invalid command. Use: process-pr, process-comment, process-issue, or process-review-comment'
+    );
     process.exit(1);
   }
 }

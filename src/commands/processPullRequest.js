@@ -3,23 +3,21 @@ import processRequest from '../utils/processRequest.js';
 
 // Initialize GitHub API client
 const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN
+  auth: process.env.GITHUB_TOKEN,
 });
 
 /**
  * Process a GitHub pull request
  */
-async function processPullRequest(aiClient, triggerPhrase) {
-  const prNumber = process.env.PR_NUMBER;
-  const owner = process.env.REPO_OWNER;
-  const repo = process.env.REPO_NAME;
+async function processPullRequest(aiClient, triggerPhrase, payload) {
+  const { prNumber, owner, repo } = payload;
 
   try {
     // Get PR details
     const { data: pullRequest } = await octokit.pulls.get({
       owner,
       repo,
-      pull_number: prNumber
+      pull_number: prNumber,
     });
 
     // Get PR diff
@@ -28,8 +26,8 @@ async function processPullRequest(aiClient, triggerPhrase) {
       repo,
       pull_number: prNumber,
       mediaType: {
-        format: 'diff'
-      }
+        format: 'diff',
+      },
     });
 
     // Combine PR title and description as the request text
@@ -44,22 +42,21 @@ async function processPullRequest(aiClient, triggerPhrase) {
         owner,
         repo,
         prNumber,
-        diff
+        diff,
       },
-      octokit
+      octokit,
     });
-
   } catch (error) {
     console.error('Error processing pull request:', error);
-    
+
     // Post error message as a comment on the PR
     await octokit.issues.createComment({
       owner,
       repo,
       issue_number: prNumber,
-      body: `❌ I encountered an error while processing this PR:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or contact support.`
+      body: `❌ I encountered an error while processing this PR:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or contact support.`,
     });
-    
+
     throw error;
   }
 }
