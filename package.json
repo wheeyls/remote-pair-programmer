@@ -4,6 +4,7 @@
   "description": "GitHub Actions bot that uses AI to respond to pull requests and comments",
   "main": "src/handler.js",
   "scripts": {
+    "worker": "node worker.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

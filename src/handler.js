@@ -1,3 +1,5 @@
+require('dotenv').config({ path: '.env' });
+require('dotenv').config({ path: '.env.local', override: true });
 const AIClient = require('./aiClient');
 const Queue = require('./utils/queue');
 
