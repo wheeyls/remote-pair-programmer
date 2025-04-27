@@ -26,6 +26,13 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
     console.log(`Created temporary directory: ${tempDir}`);
     process.chdir(tempDir);
     
+    // Debug log for GitHub token (masked)
+    console.log(`GitHub token available: ${process.env.GITHUB_TOKEN ? 'Yes' : 'No'}`);
+    if (process.env.GITHUB_TOKEN) {
+      console.log(`Token length: ${process.env.GITHUB_TOKEN.length}`);
+      console.log(`Token prefix: ${process.env.GITHUB_TOKEN.substring(0, 4)}...`);
+    }
+    
     // Initialize GitHub API client
     const octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN
@@ -57,8 +64,10 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
       repoUrl = pullRequest.head.repo.clone_url;
       
       // 2. Clone only the specific branch with minimal history
-      console.log(`Cloning repository ${repoUrl} branch ${branch}...`);
-      execSync(`git clone --depth 1 --branch ${branch} ${repoUrl} .`);
+      // Use token authentication for the git clone
+      const tokenUrl = repoUrl.replace('https://', `https://x-access-token:${process.env.GITHUB_TOKEN}@`);
+      console.log(`Cloning repository ${repoUrl.replace(/\/\/.*@/, '//***@')} branch ${branch}...`);
+      execSync(`git clone --depth 1 --branch ${branch} "${tokenUrl}" .`);
     } else {
       // For issues, clone the default branch with minimal history
       const { data: repoData } = await octokit.repos.get({
@@ -69,8 +78,10 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
       branch = repoData.default_branch;
       repoUrl = repoData.clone_url;
       
-      console.log(`Cloning repository ${repoUrl} branch ${branch}...`);
-      execSync(`git clone --depth 1 --branch ${branch} ${repoUrl} .`);
+      // Use token authentication for the git clone
+      const tokenUrl = repoUrl.replace('https://', `https://x-access-token:${process.env.GITHUB_TOKEN}@`);
+      console.log(`Cloning repository ${repoUrl.replace(/\/\/.*@/, '//***@')} branch ${branch}...`);
+      execSync(`git clone --depth 1 --branch ${branch} "${tokenUrl}" .`);
       
       // Create a new branch for the issue
       const newBranch = `ai-changes-issue-${prNumber}`;
@@ -186,6 +197,11 @@ Requested by comment on PR #${prNumber}`;
   } catch (error) {
     console.error('Error modifying code:', error);
     
+    // Log more details about the error
+    if (error.stderr) {
+      console.error('Error details:', error.stderr.toString());
+    }
+    
     // Make sure we return to the original directory and clean up
     try {
       process.chdir(originalDir);
@@ -196,7 +212,8 @@ Requested by comment on PR #${prNumber}`;
     
     return {
       success: false,
-      error: error.message
+      error: error.message,
+      details: error.stderr ? error.stderr.toString() : undefined
     };
   }
 }
