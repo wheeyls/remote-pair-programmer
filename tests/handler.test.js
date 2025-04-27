@@ -1,9 +1,3 @@
-// Mock the command modules
-jest.mock('../src/commands/processPullRequest.js');
-jest.mock('../src/commands/processComment.js');
-jest.mock('../src/commands/processIssue.js');
-jest.mock('../src/commands/processReviewComment.js');
-
 // Import the handler module
 import { initializeHandler, runHandler } from '../src/handler.js';
 
