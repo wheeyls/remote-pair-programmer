@@ -1,8 +1,8 @@
 // Mock the command modules
-jest.mock('../src/commands/processPullRequest', () => jest.fn());
-jest.mock('../src/commands/processComment', () => jest.fn());
-jest.mock('../src/commands/processIssue', () => jest.fn());
-jest.mock('../src/commands/processReviewComment', () => jest.fn());
+jest.mock('../src/commands/processPullRequest.js', () => ({ default: jest.fn() }));
+jest.mock('../src/commands/processComment.js', () => ({ default: jest.fn() }));
+jest.mock('../src/commands/processIssue.js', () => ({ default: jest.fn() }));
+jest.mock('../src/commands/processReviewComment.js', () => ({ default: jest.fn() }));
 
 describe('Handler', () => {
   let originalEnv;
@@ -13,7 +13,7 @@ describe('Handler', () => {
   let mockAIClient;
   let mockQueue;
   
-  beforeEach(() => {
+  beforeEach(async () => {
     // Clear all mocks
     jest.clearAllMocks();
     
@@ -40,12 +40,16 @@ describe('Handler', () => {
     };
     
     // Get the mocked modules
-    processPullRequest = require('../src/commands/processPullRequest');
-    processComment = require('../src/commands/processComment');
-    processIssue = require('../src/commands/processIssue');
+    const pullRequestModule = await import('../src/commands/processPullRequest.js');
+    const commentModule = await import('../src/commands/processComment.js');
+    const issueModule = await import('../src/commands/processIssue.js');
+    
+    processPullRequest = pullRequestModule.default;
+    processComment = commentModule.default;
+    processIssue = issueModule.default;
     
     // Import the handler module
-    handler = require('../src/handler');
+    handler = await import('../src/handler.js');
   });
   
   afterEach(() => {
@@ -112,7 +116,7 @@ describe('Handler', () => {
     expect(mockQueue.enqueue).toHaveBeenCalledWith('process-review-comment', {});
   });
   
-  test('exits with error for invalid command', () => {
+  test('exits with error for invalid command', async () => {
     // Mock process.exit
     const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {});
     
@@ -120,7 +124,7 @@ describe('Handler', () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     
     // Run the handler with an invalid command and our mocks
-    handler.runHandler('invalid-command', {
+    await handler.runHandler('invalid-command', {
       aiClient: mockAIClient,
       queue: mockQueue
     });

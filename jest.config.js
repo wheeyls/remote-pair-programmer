@@ -22,7 +22,12 @@ const config = {
   ],
   setupFilesAfterEnv: [
     "<rootDir>/tests/setup.js"
-  ]
+  ],
+  // Add support for ES modules in Jest
+  extensionsToTreatAsEsm: ['.js'],
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1'
+  }
 };
 
 export default config;
