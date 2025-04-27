@@ -148,7 +148,7 @@ function getFileContents(files) {
  * @param {Array<string>} baseFiles - Base set of files to include (e.g., PR files)
  * @returns {Object} - Object mapping file paths to their contents
  */
-function processFileContext({ text, baseFiles = [], additionalFiles = [] }) {
+function processFileContext({ text, additionalFiles = [] }) {
   // Extract directives
   const directives = extractFileDirectives(text);
 
