@@ -1,10 +1,10 @@
-export default {
+/** @type {import('jest').Config} */
+const config = {
   testEnvironment: "node",
   transform: {},
-  extensionsToTreatAsEsm: [],
-  moduleNameMapper: {
-    "^(\\.{1,2}/.*)\\.js$": "$1"
-  },
+  transformIgnorePatterns: [
+    "/node_modules/"
+  ],
   collectCoverageFrom: [
     "src/**/*.js",
     "!**/node_modules/**"
@@ -24,3 +24,5 @@ export default {
     "<rootDir>/tests/setup.js"
   ]
 };
+
+module.exports = config;

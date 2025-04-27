@@ -6,11 +6,6 @@ global.console = {
   error: jest.fn()
 };
 
-// For ES modules, we need to use a different approach for mocking
-import { jest } from '@jest/globals';
-import { execSync } from 'child_process';
-import fs from 'fs';
-
 // Mock child_process.execSync
 jest.mock('child_process', () => ({
   execSync: jest.fn().mockImplementation(() => 'mocked execSync output')
