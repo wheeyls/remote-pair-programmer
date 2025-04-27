@@ -8,6 +8,7 @@ export class WebServiceQueue {
    * Create a new WebServiceQueue instance
    * @param {Object} options - Queue configuration options
    * @param {string} options.baseUrl - Base URL for the web service
+   * @param {string} [options.authToken] - Bearer authentication token
    */
   constructor(options = {}) {
     this.options = options;
@@ -16,6 +17,9 @@ export class WebServiceQueue {
     
     // Base URL for the web service
     this.baseUrl = options.baseUrl;
+    
+    // Authentication token
+    this.authToken = options.authToken;
     
     if (!this.baseUrl) {
       throw new Error('Base URL is required for web service queue operations');
@@ -51,11 +55,18 @@ export class WebServiceQueue {
     };
     
     // Add job to the queue via web service
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Add authorization header if token is provided
+    if (this.authToken) {
+      headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
+    
     const response = await fetch(this.baseUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(job)
     });
     
@@ -94,11 +105,18 @@ export class WebServiceQueue {
    */
   async processNextJob() {
     // Get the next job from the queue
+    const headers = {
+      'Accept': 'application/json',
+    };
+    
+    // Add authorization header if token is provided
+    if (this.authToken) {
+      headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
+    
     const response = await fetch(`${this.baseUrl}/next`, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      }
+      headers
     });
     
     if (!response.ok && response.status !== 404) {
@@ -123,11 +141,18 @@ export class WebServiceQueue {
       const result = await this.processCommand(job.commandType, job.payload);
       
       // Record successful completion
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authorization header if token is provided
+      if (this.authToken) {
+        headers['Authorization'] = `Bearer ${this.authToken}`;
+      }
+      
       await fetch(`${this.baseUrl}/completed/${job.id}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           job,
           result,
@@ -141,11 +166,18 @@ export class WebServiceQueue {
       
       // Record failure
       if (jobData) {
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        
+        // Add authorization header if token is provided
+        if (this.authToken) {
+          headers['Authorization'] = `Bearer ${this.authToken}`;
+        }
+        
         await fetch(`${this.baseUrl}/failed/${jobData.id}`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           body: JSON.stringify({
             job: jobData,
             error: error.message,

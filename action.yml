@@ -36,6 +36,9 @@ inputs:
   queue-service-url:
     description: 'Web service URL for queue operations'
     required: true
+  queue-auth-token:
+    description: 'Authentication token for queue service'
+    required: false
 
 runs:
   using: 'composite'
@@ -74,6 +77,7 @@ runs:
         TRIGGER_PHRASE: ${{ inputs.trigger-phrase }}
         AI_PROVIDER: ${{ inputs.ai-provider }}
         QUEUE_SERVICE_URL: ${{ inputs.queue-service-url }}
+        QUEUE_AUTH_TOKEN: ${{ inputs.queue-auth-token }}
       run: |
         if [ "${{ github.event_name }}" == "pull_request" ]; then
           node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-pr

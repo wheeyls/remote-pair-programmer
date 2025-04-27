@@ -63,12 +63,15 @@ describe('WebServiceQueue', () => {
   test('creates a queue with the correct name and baseUrl', () => {
     expect(queue.name).toBe('default');
     expect(queue.baseUrl).toBe(`http://localhost:${serverPort}`);
+    expect(queue.authToken).toBeUndefined();
     
     const namedQueue = new WebServiceQueue({
       name: 'test-queue',
-      baseUrl: `http://localhost:${serverPort}`
+      baseUrl: `http://localhost:${serverPort}`,
+      authToken: 'test-token'
     });
     expect(namedQueue.name).toBe('test-queue');
+    expect(namedQueue.authToken).toBe('test-token');
   });
   
   test('throws error when baseUrl is not provided', () => {

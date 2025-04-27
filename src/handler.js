@@ -31,7 +31,8 @@ export function initializeHandler(deps = {}) {
   // Initialize web service queue
   const queue = deps.queue || createQueue({
     name: 'github-ai-agent',
-    baseUrl: process.env.QUEUE_SERVICE_URL
+    baseUrl: process.env.QUEUE_SERVICE_URL,
+    authToken: process.env.QUEUE_AUTH_TOKEN
   });
 
   // Get trigger phrase from environment or use default

@@ -30,12 +30,14 @@ describe('Queue Factory', () => {
   
   test('creates a WebService queue with correct parameters', () => {
     process.env.QUEUE_SERVICE_URL = 'http://localhost:3000/api/queue';
+    process.env.QUEUE_AUTH_TOKEN = 'test-auth-token';
     
     const queue = createQueue({ name: 'test-queue' });
     
     expect(WebServiceQueue).toHaveBeenCalledWith({
       name: 'test-queue',
-      baseUrl: 'http://localhost:3000/api/queue'
+      baseUrl: 'http://localhost:3000/api/queue',
+      authToken: 'test-auth-token'
     });
     expect(queue.type).toBe('webservice');
   });
@@ -50,15 +52,18 @@ describe('Queue Factory', () => {
   
   test('uses provided options over environment variables', () => {
     process.env.QUEUE_SERVICE_URL = 'http://default-url.com';
+    process.env.QUEUE_AUTH_TOKEN = 'default-token';
     
     const queue = createQueue({
       baseUrl: 'http://custom-url.com',
-      name: 'custom-queue'
+      name: 'custom-queue',
+      authToken: 'custom-token'
     });
     
     expect(WebServiceQueue).toHaveBeenCalledWith({
       name: 'custom-queue',
-      baseUrl: 'http://custom-url.com'
+      baseUrl: 'http://custom-url.com',
+      authToken: 'custom-token'
     });
   });
 });

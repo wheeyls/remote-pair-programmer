@@ -97,6 +97,7 @@ jobs:
 - `AI_API_KEY` - Your OpenAI API key (when using OpenAI provider)
 - `ANTHROPIC_API_KEY` - Your Anthropic API key (when using Anthropic provider)
 - `QUEUE_SERVICE_URL` - Your queue web service URL
+- `QUEUE_AUTH_TOKEN` - Authentication token for queue service (optional)
 
 To add your secrets to GitHub Actions:
 
@@ -119,6 +120,7 @@ To add your secrets to GitHub Actions:
 | `ai-provider` | AI provider to use (openai or anthropic) | No | `openai` |
 | `anthropic-base-url` | Base URL for Anthropic API (if needed) | No | `https://api.anthropic.com` |
 | `queue-service-url` | Web service URL for queue operations | Yes | N/A |
+| `queue-auth-token` | Authentication token for queue service | No | N/A |
 
 *Either `openai-api-key` or `anthropic-api-key` is required depending on which provider you use.
 
