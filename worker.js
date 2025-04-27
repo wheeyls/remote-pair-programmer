@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import { initializeHandler } from './src/handler.js';
+import { createQueue } from './src/utils/queueFactory.js';
 
 // Load environment variables
 dotenv.config({ path: '.env' });

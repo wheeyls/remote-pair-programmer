@@ -1,5 +1,5 @@
 import { AIClient } from './aiClient.js';
-import { Queue } from './utils/queue.js';
+import { createQueue } from './utils/queueFactory.js';
 
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
@@ -28,10 +28,12 @@ export function initializeHandler(deps = {}) {
     provider: process.env.AI_PROVIDER || 'openai'
   });
 
-  // Initialize queue
-  const queue = deps.queue || new Queue({
+  // Initialize queue using the factory
+  const queue = deps.queue || createQueue({
     name: 'github-ai-agent',
-    redisUrl: process.env.REDIS_URL
+    queueType: process.env.QUEUE_TYPE,
+    redisUrl: process.env.REDIS_URL,
+    baseUrl: process.env.QUEUE_SERVICE_URL
   });
 
   // Get trigger phrase from environment or use default

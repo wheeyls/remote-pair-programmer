@@ -1,5 +1,9 @@
 import { jest } from '@jest/globals';
 import { initializeHandler, runHandler } from '../src/handler.js';
+import { createQueue } from '../src/utils/queueFactory.js';
+
+// Mock the queue factory
+jest.mock('../src/utils/queueFactory.js');
 
 describe('Handler', () => {
   let originalEnv;
@@ -25,6 +29,9 @@ describe('Handler', () => {
       registerHandler: jest.fn(),
       enqueue: jest.fn().mockResolvedValue({})
     };
+    
+    // Mock the createQueue function to return our mock queue
+    createQueue.mockReturnValue(mockQueue);
   });
   
   afterEach(() => {

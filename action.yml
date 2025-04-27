@@ -33,6 +33,16 @@ inputs:
     description: 'AI provider to use (openai, sonnet, or anthropic)'
     required: false
     default: 'openai'
+  queue-type:
+    description: 'Type of queue to use (redis or webservice)'
+    required: false
+    default: 'redis'
+  redis-url:
+    description: 'Redis URL for queue operations'
+    required: false
+  queue-service-url:
+    description: 'Web service URL for queue operations'
+    required: false
 
 runs:
   using: 'composite'
@@ -70,6 +80,9 @@ runs:
         WEAK_AI_MODEL: ${{ inputs.weak-model }}
         TRIGGER_PHRASE: ${{ inputs.trigger-phrase }}
         AI_PROVIDER: ${{ inputs.ai-provider }}
+        QUEUE_TYPE: ${{ inputs.queue-type }}
+        REDIS_URL: ${{ inputs.redis-url }}
+        QUEUE_SERVICE_URL: ${{ inputs.queue-service-url }}
       run: |
         if [ "${{ github.event_name }}" == "pull_request" ]; then
           node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-pr
