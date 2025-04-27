@@ -16,27 +16,27 @@ export class AIClient {
    */
   constructor(options) {
     this.provider = options.provider || 'openai';
-    
+
     // Initialize the appropriate adapter
     if (this.provider === 'openai') {
       this.adapter = new OpenAIAdapter({
-        apiKey: options.apiKey
+        apiKey: options.apiKey,
       });
     } else if (this.provider === 'anthropic') {
       this.adapter = new AnthropicAdapter({
-        apiKey: options.apiKey
+        apiKey: options.apiKey,
       });
     } else {
       throw new Error(`Unsupported AI provider: ${this.provider}`);
     }
-    
+
     // Get default models from the adapter
     const defaultModels = this.adapter.getDefaultModels();
-    
+
     // Model configuration with override options
     this.models = {
       strong: options.strongModel || options.model || defaultModels.strong,
-      weak: options.weakModel || defaultModels.weak
+      weak: options.weakModel || defaultModels.weak,
     };
   }
 
@@ -50,29 +50,36 @@ export class AIClient {
    * @param {Object} [options.responseFormat] - Response format specification
    * @returns {Promise<string>} - The generated completion text
    */
-  async generateCompletion({ prompt, context, modelStrength = "strong", temperature = 0.7, responseFormat = null }) {
+  async generateCompletion({
+    prompt,
+    context,
+    modelStrength = 'strong',
+    temperature = 0.7,
+    responseFormat = null,
+  }) {
     const model = this.models[modelStrength] || this.models.strong;
-    
+
     const requestOptions = {
       model,
       messages: [
         {
-          role: "system",
-          content: prompt
+          role: 'system',
+          content: prompt,
         },
         {
-          role: "user",
-          content: typeof context === 'string' ? context : JSON.stringify(context)
-        }
+          role: 'user',
+          content:
+            typeof context === 'string' ? context : JSON.stringify(context),
+        },
       ],
-      temperature
+      temperature,
     };
-    
+
     // Add response format if specified
     if (responseFormat) {
       requestOptions.response_format = responseFormat;
     }
-    
+
     // Log the inputs for debugging
     console.log('AI Request:', {
       provider: this.provider,
@@ -82,16 +89,22 @@ export class AIClient {
       responseFormat: responseFormat ? JSON.stringify(responseFormat) : 'none',
       promptLength: prompt.length,
       contextType: typeof context,
-      contextLength: typeof context === 'string' ? context.length : JSON.stringify(context).length
+      contextLength:
+        typeof context === 'string'
+          ? context.length
+          : JSON.stringify(context).length,
     });
-    
+
     try {
-      const completion = await this.adapter.createChatCompletion(requestOptions);
+      const completion =
+        await this.adapter.createChatCompletion(requestOptions);
       return completion.choices[0].message.content;
     } catch (error) {
-      console.error(`Error generating AI completion with ${this.provider}:`, error);
+      console.error(
+        `Error generating AI completion with ${this.provider}:`,
+        error
+      );
       throw error;
     }
   }
 }
-

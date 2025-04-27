@@ -17,6 +17,9 @@ services:
       - WEAK_AI_MODEL=${WEAK_AI_MODEL}
       - TRIGGER_PHRASE=${TRIGGER_PHRASE}
       - GITHUB_TOKEN=${GITHUB_TOKEN}
+    volumes:
+      # Mount only the necessary files for development (optional)
+      - ./src:/app/src:ro
     tmpfs:
       # Use tmpfs for temporary files to improve performance and security
       - /tmp
