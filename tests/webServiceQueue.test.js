@@ -112,6 +112,20 @@ describe('WebServiceQueue', () => {
     });
   });
   
+  test('includes X-API-Token header when auth token is provided', async () => {
+    // Create a queue with auth token
+    const queueWithAuth = new WebServiceQueue({
+      baseUrl: `http://localhost:${serverPort}`,
+      authToken: 'test-token'
+    });
+    
+    await queueWithAuth.enqueue('test-command', { data: 'test-data' });
+    
+    // Verify the auth header was included
+    expect(requestLog.length).toBe(1);
+    expect(requestLog[0].headers['x-api-token']).toBe('test-token');
+  });
+  
   test('handles enqueue errors', async () => {
     // Configure server to return an error
     responseToSend.status = 500;

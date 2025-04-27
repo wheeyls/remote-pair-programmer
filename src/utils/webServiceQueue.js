@@ -8,19 +8,19 @@ export class WebServiceQueue {
    * Create a new WebServiceQueue instance
    * @param {Object} options - Queue configuration options
    * @param {string} options.baseUrl - Base URL for the web service
-   * @param {string} [options.authToken] - Bearer authentication token
+   * @param {string} [options.authToken] - API authentication token
    */
   constructor(options = {}) {
     this.options = options;
     this.name = options.name || 'default';
     this.handlers = new Map();
-    
+
     // Base URL for the web service
     this.baseUrl = options.baseUrl;
-    
+
     // Authentication token
     this.authToken = options.authToken;
-    
+
     if (!this.baseUrl) {
       throw new Error('Base URL is required for web service queue operations');
     }
@@ -46,34 +46,34 @@ export class WebServiceQueue {
    */
   async enqueue(commandType, payload) {
     console.log(`Enqueueing command: ${commandType}`, payload);
-    
+
     const job = {
       id: `job-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       commandType,
       payload,
       addedAt: new Date().toISOString()
     };
-    
+
     // Add job to the queue via web service
     const headers = {
       'Content-Type': 'application/json',
     };
-    
-    // Add authorization header if token is provided
+
+    // Add API token header if token is provided
     if (this.authToken) {
-      headers['Authorization'] = `Bearer ${this.authToken}`;
+      headers['X-API-Token'] = this.authToken;
     }
-    
+
     const response = await fetch(this.baseUrl, {
       method: 'POST',
       headers,
       body: JSON.stringify(job)
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to enqueue job: ${response.status} ${response.statusText}`);
     }
-    
+
     return job.id;
   }
 
@@ -86,11 +86,11 @@ export class WebServiceQueue {
    */
   async processCommand(commandType, payload) {
     const handler = this.handlers.get(commandType);
-    
+
     if (!handler) {
       throw new Error(`No handler registered for command type: ${commandType}`);
     }
-    
+
     try {
       return await handler(payload);
     } catch (error) {
@@ -108,48 +108,48 @@ export class WebServiceQueue {
     const headers = {
       'Accept': 'application/json',
     };
-    
-    // Add authorization header if token is provided
+
+    // Add API token header if token is provided
     if (this.authToken) {
-      headers['Authorization'] = `Bearer ${this.authToken}`;
+      headers['X-API-Token'] = this.authToken;
     }
-    
+
     const response = await fetch(`${this.baseUrl}/next`, {
       method: 'GET',
       headers
     });
-    
+
     if (!response.ok && response.status !== 404) {
       throw new Error(`Failed to get next job: ${response.status} ${response.statusText}`);
     }
-    
+
     // If no jobs (404) or empty response
     if (response.status === 404 || response.headers.get('content-length') === '0') {
       return null;
     }
-    
+
     const jobData = await response.json();
-    
-    if (!jobData) {
+
+    if (!jobData || !jobData.id) {
       return null; // No jobs in the queue
     }
-    
+
     try {
       const job = jobData;
       console.log(`Processing job ${job.id} of type ${job.commandType}`);
-      
+
       const result = await this.processCommand(job.commandType, job.payload);
-      
+
       // Record successful completion
       const headers = {
         'Content-Type': 'application/json',
       };
-      
-      // Add authorization header if token is provided
+
+      // Add API token header if token is provided
       if (this.authToken) {
-        headers['Authorization'] = `Bearer ${this.authToken}`;
+        headers['X-API-Token'] = this.authToken;
       }
-      
+
       await fetch(`${this.baseUrl}/completed/${job.id}`, {
         method: 'POST',
         headers,
@@ -159,22 +159,22 @@ export class WebServiceQueue {
           completedAt: new Date().toISOString()
         })
       });
-      
+
       return { job, result };
     } catch (error) {
       console.error('Error processing job:', error);
-      
+
       // Record failure
       if (jobData) {
         const headers = {
           'Content-Type': 'application/json',
         };
-        
-        // Add authorization header if token is provided
+
+        // Add API token header if token is provided
         if (this.authToken) {
-          headers['Authorization'] = `Bearer ${this.authToken}`;
+          headers['X-API-Token'] = this.authToken;
         }
-        
+
         await fetch(`${this.baseUrl}/failed/${jobData.id}`, {
           method: 'POST',
           headers,
@@ -185,7 +185,7 @@ export class WebServiceQueue {
           })
         });
       }
-      
+
       throw error;
     }
   }

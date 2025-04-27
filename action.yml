@@ -37,7 +37,7 @@ inputs:
     description: 'Web service URL for queue operations'
     required: true
   queue-auth-token:
-    description: 'Authentication token for queue service'
+    description: 'API token for queue service authentication'
     required: false
 
 runs:
