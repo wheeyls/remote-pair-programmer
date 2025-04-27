@@ -11,6 +11,9 @@ const aiClient = new AIClient({
   model: process.env.AI_MODEL || 'gpt-4',
   strongModel: process.env.STRONG_AI_MODEL,
   weakModel: process.env.WEAK_AI_MODEL,
+  provider: process.env.AI_PROVIDER || 'openai'
+});
+
 // Initialize queue
 const queue = new Queue({
   name: 'github-ai-agent'
@@ -46,4 +49,3 @@ if (command === 'process-pr' || command === 'process-comment' || command === 'pr
   console.error('Invalid command. Use: process-pr, process-comment, or process-issue');
   process.exit(1);
 }
-
