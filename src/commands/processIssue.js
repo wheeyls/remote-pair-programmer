@@ -40,7 +40,7 @@ async function processIssue(aiClient, triggerPhrase, payload) {
       owner,
       repo,
       issue_number: issueNumber,
-      body: `I'm processing your request to make code changes. I'll convert this issue into a PR shortly.`,
+      body: `I'm processing your request to make code changes. I'll convert this issue into a PR shortly.\n\nbot:ignore`,
     });
 
     // Create a new branch for the changes
