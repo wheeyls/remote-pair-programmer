@@ -87,7 +87,7 @@ async function processIssue(aiClient, triggerPhrase, payload) {
         owner,
         repo,
         issue_number: issueNumber,
-        body: `❌ I encountered an error while trying to make the requested changes:\n\`\`\`\n${result.error}\n\`\`\`\n\nPlease provide more details or try a different request.`,
+        body: `❌ I encountered an error while trying to make the requested changes:\n\`\`\`\n${result.error}\n\`\`\`\n\nPlease provide more details or try a different request.\n\nbot:ignore`,
       });
       return;
     }
@@ -106,7 +106,7 @@ async function processIssue(aiClient, triggerPhrase, payload) {
         .map((f) => `- \`${f}\``)
         .join(
           '\n'
-        )}\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${owner}/${repo}/compare/${baseBranch}...${newBranch}?expand=1`,
+        )}\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${owner}/${repo}/compare/${baseBranch}...${newBranch}?expand=1\n\nbot:ignore`,
     });
   } catch (error) {
     await handleError({
