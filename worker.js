@@ -30,6 +30,13 @@ async function startWorker() {
       setImmediate(processJobs);
     } catch (error) {
       console.error('Error in job processing loop:', error);
+      console.error('Error details:', error.stack);
+      
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
+      
       // Continue processing despite errors
       setTimeout(processJobs, 5000);
     }

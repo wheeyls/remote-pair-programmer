@@ -135,6 +135,7 @@ export class WebServiceQueue {
     try {
       const job = jobData;
       console.log(`Processing job ${job.id} of type ${job.name}`);
+      console.log(`Job payload:`, JSON.stringify(job.body, null, 2));
 
       const result = await this.processCommand(job.name, job.body);
 
@@ -161,6 +162,12 @@ export class WebServiceQueue {
       return { job, result };
     } catch (error) {
       console.error('Error processing job:', error);
+      console.error('Error details:', error.stack);
+      
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
 
       // Record failure
       if (jobData) {
