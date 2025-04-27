@@ -1,6 +1,9 @@
-require('dotenv').config({ path: '.env' });
-require('dotenv').config({ path: '.env.local', override: true });
-const { initializeHandler } = require('./src/handler');
+import dotenv from 'dotenv';
+import { initializeHandler } from './src/handler.js';
+
+// Load environment variables
+dotenv.config({ path: '.env' });
+dotenv.config({ path: '.env.local', override: true });
 
 async function startWorker() {
   console.log('Starting queue worker...');
