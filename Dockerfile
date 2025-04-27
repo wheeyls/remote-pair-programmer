@@ -1,5 +1,8 @@
 FROM node:20-alpine
 
+# Install git
+RUN apk add --no-cache git
+
 WORKDIR /app
 
 # Copy package files first for better layer caching
