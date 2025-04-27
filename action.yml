@@ -73,6 +73,8 @@ runs:
       run: |
         if [ "${{ github.event_name }}" == "pull_request" ]; then
           node -e "require('./src/handler').runHandler('process-pr').catch(console.error)"
+        elif [ "${{ github.event_name }}" == "pull_request_review_comment" ]; then
+          node -e "require('./src/handler').runHandler('process-review-comment').catch(console.error)"
         else
           node -e "require('./src/handler').runHandler('process-comment').catch(console.error)"
         fi

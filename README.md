@@ -5,6 +5,7 @@ A GitHub Action that allows an AI to make code changes directly to your PR based
 ## Features
 
 - Responds to PR comments with AI-generated insights
+- Responds to line-specific review comments in PRs
 - Makes code changes and commits them directly to PRs
 - Works like a remote pair programmer you can access from anywhere
 
@@ -18,6 +19,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   issue_comment:
+    types: [created]
+  pull_request_review_comment:
     types: [created]
   issues:
     types: [opened]

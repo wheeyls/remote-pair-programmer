@@ -2,6 +2,7 @@
 jest.mock('../src/commands/processPullRequest', () => jest.fn());
 jest.mock('../src/commands/processComment', () => jest.fn());
 jest.mock('../src/commands/processIssue', () => jest.fn());
+jest.mock('../src/commands/processReviewComment', () => jest.fn());
 
 describe('Handler', () => {
   let originalEnv;
@@ -60,10 +61,11 @@ describe('Handler', () => {
     });
     
     // Check if all handlers were registered
-    expect(mockQueue.registerHandler).toHaveBeenCalledTimes(3);
+    expect(mockQueue.registerHandler).toHaveBeenCalledTimes(4);
     expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-pr', expect.any(Function));
     expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-comment', expect.any(Function));
     expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-issue', expect.any(Function));
+    expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-review-comment', expect.any(Function));
   });
   
   test('processes pull request command correctly', async () => {
@@ -99,6 +101,17 @@ describe('Handler', () => {
     expect(mockQueue.enqueue).toHaveBeenCalledWith('process-issue', {});
   });
   
+  test('processes review comment command correctly', async () => {
+    // Run the handler with the review comment command and our mocks
+    await handler.runHandler('process-review-comment', {
+      aiClient: mockAIClient,
+      queue: mockQueue
+    });
+    
+    // Check if the correct command was enqueued
+    expect(mockQueue.enqueue).toHaveBeenCalledWith('process-review-comment', {});
+  });
+  
   test('exits with error for invalid command', () => {
     // Mock process.exit
     const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {});
@@ -113,7 +126,7 @@ describe('Handler', () => {
     });
     
     // Check if error was logged and process.exit was called
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Invalid command. Use: process-pr, process-comment, or process-issue');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Invalid command. Use: process-pr, process-comment, process-issue, or process-review-comment');
     expect(mockExit).toHaveBeenCalledWith(1);
     
     // Restore mocks

@@ -5,6 +5,8 @@ on:
     types: [opened]
   issue_comment:
     types: [created]
+  pull_request_review_comment:
+    types: [created]
   issues:
     types: [opened]
 
@@ -16,7 +18,7 @@ permissions:
 jobs:
   process-event:
     runs-on: ubuntu-latest
-    if: ${{ (github.event_name == 'pull_request') || (github.event_name == 'issue_comment' && github.event.issue.pull_request) || (github.event_name == 'issues') }}
+    if: ${{ (github.event_name == 'pull_request') || (github.event_name == 'issue_comment' && github.event.issue.pull_request) || (github.event_name == 'pull_request_review_comment') || (github.event_name == 'issues') }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -49,6 +51,8 @@ jobs:
             node -e "require('./src/handler').runHandler('process-pr').catch(console.error)"
           elif [ "${{ github.event_name }}" == "issues" ]; then
             node -e "require('./src/handler').runHandler('process-issue').catch(console.error)"
+          elif [ "${{ github.event_name }}" == "pull_request_review_comment" ]; then
+            node -e "require('./src/handler').runHandler('process-review-comment').catch(console.error)"
           else
             node -e "require('./src/handler').runHandler('process-comment').catch(console.error)"
           fi

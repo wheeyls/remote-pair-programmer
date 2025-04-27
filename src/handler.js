@@ -5,6 +5,7 @@ const Queue = require('./utils/queue');
 const processPullRequest = require('./commands/processPullRequest');
 const processComment = require('./commands/processComment');
 const processIssue = require('./commands/processIssue');
+const processReviewComment = require('./commands/processReviewComment');
 
 /**
  * Initialize the handler with all dependencies
@@ -43,6 +44,10 @@ function initializeHandler(deps = {}) {
   queue.registerHandler('process-issue', async (payload) => {
     return processIssue(aiClient, TRIGGER_PHRASE);
   });
+  
+  queue.registerHandler('process-review-comment', async (payload) => {
+    return processReviewComment(aiClient, TRIGGER_PHRASE);
+  });
 
   return {
     aiClient,
@@ -60,10 +65,10 @@ function initializeHandler(deps = {}) {
 async function runHandler(command, deps = {}) {
   const { queue } = initializeHandler(deps);
   
-  if (command === 'process-pr' || command === 'process-comment' || command === 'process-issue') {
+  if (command === 'process-pr' || command === 'process-comment' || command === 'process-issue' || command === 'process-review-comment') {
     return queue.enqueue(command, {});
   } else {
-    console.error('Invalid command. Use: process-pr, process-comment, or process-issue');
+    console.error('Invalid command. Use: process-pr, process-comment, process-issue, or process-review-comment');
     process.exit(1);
   }
 }
