@@ -18,18 +18,25 @@ async function processRequest(params) {
   const { aiClient, triggerPhrase, requestText, context, octokit } = params;
   const { owner, repo, prNumber } = context;
 
+  const aiSignature = '\n\nbot:ignore';
+
+  // Check if this is a bot message or should be ignored
+  if (requestText.includes('bot:ignore')) {
+    console.log('Ignoring comment due to ignore directive');
+    return { success: true, ignored: true };
+  }
+
+  // Check if the trigger phrase is present
+  if (!requestText.includes(triggerPhrase)) {
+    console.log('Trigger phrase not found, ignoring request');
+    return { success: true, ignored: true };
+  }
+
   try {
     // Check if this is a code modification request
-    const isCodeModRequest = requestText.includes(triggerPhrase) && 
-      (requestText.includes('change') || 
-       requestText.includes('modify') || 
-       requestText.includes('update') || 
-       requestText.includes('fix') || 
-       requestText.includes('implement') || 
-       requestText.includes('refactor') ||
-       requestText.includes('.add-files')); // Consider requests with file directives as code mod requests
+    const isArchitectureRequest = requestText.includes('architect');
 
-    if (isCodeModRequest) {
+    if (!isArchitectureRequest) {
       // This is a code modification request
       const result = await modifyCode({
         owner,
@@ -56,15 +63,6 @@ async function processRequest(params) {
 
       return { success: true, isCodeMod: true, response: responseBody };
     } else {
-      // This is a regular comment, just respond with AI
-      // Use strong model for complex questions, weak model for simple responses
-      const isComplexQuestion = requestText.length > 100 || 
-        requestText.includes('explain') || 
-        requestText.includes('how') || 
-        requestText.includes('why');
-      
-      const modelStrength = isComplexQuestion ? 'strong' : 'weak';
-      
       const aiResponse = await generateAIResponse(
         aiClient,
         {
@@ -72,7 +70,7 @@ async function processRequest(params) {
           context: `PR #${prNumber}`
         }, 
         'COMMENT_RESPONSE',
-        modelStrength
+        'strong'
       );
 
       // Post AI response as a reply
@@ -80,7 +78,7 @@ async function processRequest(params) {
         owner,
         repo,
         issue_number: prNumber,
-        body: `> ${requestText}\n\n${aiResponse}`
+        body: aiResponse + aiSignature
       });
 
       return { success: true, isCodeMod: false, response: aiResponse };
@@ -93,7 +91,7 @@ async function processRequest(params) {
       owner,
       repo,
       issue_number: prNumber,
-      body: `> ${requestText}\n\n❌ I encountered an error while processing your request:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or rephrase your request.`
+      body: `❌ I encountered an error while processing your request:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or rephrase your request.${aiSignature}`
     });
 
     return { success: false, error: error.message };

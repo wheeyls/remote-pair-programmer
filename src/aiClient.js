@@ -92,8 +92,7 @@ export class AIClient {
       contextLength:
         typeof context === 'string'
           ? context.length
-          : JSON.stringify(context).length,
-      content: context
+          : JSON.stringify(context).length
     });
 
     try {
