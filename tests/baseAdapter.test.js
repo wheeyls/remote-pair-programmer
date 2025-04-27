@@ -1,4 +1,5 @@
-const BaseAdapter = require('../src/aiAdapters/baseAdapter');
+import { jest } from '@jest/globals';
+import { BaseAdapter } from '../src/aiAdapters/baseAdapter.js';
 
 describe('BaseAdapter', () => {
   test('cannot be instantiated directly', () => {

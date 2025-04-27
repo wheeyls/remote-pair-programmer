@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const glob = require('glob');
+import fs from 'fs';
+import path from 'path';
+import { glob } from 'glob';
 
 /**
  * Extract file context directives from text
@@ -129,7 +129,7 @@ function processFileContext(text, baseFiles = []) {
   return getFileContents(allFiles);
 }
 
-module.exports = {
+export {
   extractFileDirectives,
   resolveGlobs,
   applyIgnorePatterns,

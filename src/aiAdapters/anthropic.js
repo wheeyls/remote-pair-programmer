@@ -1,10 +1,10 @@
-const Anthropic = require('@anthropic-ai/sdk');
-const BaseAdapter = require('./baseAdapter');
+import Anthropic from '@anthropic-ai/sdk';
+import { BaseAdapter } from './baseAdapter.js';
 
 /**
  * Adapter for Anthropic API
  */
-class AnthropicAdapter extends BaseAdapter {
+export class AnthropicAdapter extends BaseAdapter {
   /**
    * Creates a new AnthropicAdapter
    * @param {Object} options - Configuration options
@@ -126,4 +126,3 @@ class AnthropicAdapter extends BaseAdapter {
   }
 }
 
-module.exports = AnthropicAdapter;

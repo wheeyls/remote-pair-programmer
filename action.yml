@@ -72,10 +72,10 @@ runs:
         AI_PROVIDER: ${{ inputs.ai-provider }}
       run: |
         if [ "${{ github.event_name }}" == "pull_request" ]; then
-          node -e "require('./src/handler').runHandler('process-pr').catch(console.error)"
+          node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-pr
         elif [ "${{ github.event_name }}" == "pull_request_review_comment" ]; then
-          node -e "require('./src/handler').runHandler('process-review-comment').catch(console.error)"
+          node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-review-comment
         else
-          node -e "require('./src/handler').runHandler('process-comment').catch(console.error)"
+          node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-comment
         fi
       shell: bash

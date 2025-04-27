@@ -46,4 +46,4 @@ Note: The user may have included file context directives in their request:
 These directives have already been processed, and you have access to all the relevant files.`
 };
 
-module.exports = PROMPTS;
+export default PROMPTS;

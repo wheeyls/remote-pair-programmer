@@ -1,8 +1,9 @@
-const processRequest = require('../src/utils/processRequest');
-const { modifyCode } = require('../src/codeChanges');
+import { jest } from '@jest/globals';
+import processRequest from '../src/utils/processRequest.js';
+import { modifyCode } from '../src/codeChanges.js';
 
 // Mock dependencies
-jest.mock('../src/codeChanges', () => ({
+jest.mock('../src/codeChanges.js', () => ({
   modifyCode: jest.fn()
 }));
 

@@ -1,5 +1,5 @@
-const { Octokit } = require('@octokit/rest');
-const processRequest = require('../utils/processRequest');
+import { Octokit } from '@octokit/rest';
+import processRequest from '../utils/processRequest.js';
 
 // Initialize GitHub API client
 const octokit = new Octokit({
@@ -61,4 +61,4 @@ async function processComment(aiClient, triggerPhrase) {
   }
 }
 
-module.exports = processComment;
+export default processComment;

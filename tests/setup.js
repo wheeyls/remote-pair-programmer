@@ -1,25 +1,15 @@
-// Mock console methods to avoid cluttering test output
-global.console = {
-  ...console,
-  log: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn()
-};
+// Silence console output during tests to keep the output clean
+import { jest } from '@jest/globals';
 
-// Mock child_process.execSync
-jest.mock('child_process', () => ({
-  execSync: jest.fn().mockImplementation(() => 'mocked execSync output')
-}));
+const originalConsole = { ...console };
 
-// Mock fs module
-jest.mock('fs', () => ({
-  readFileSync: jest.fn().mockImplementation((path) => `Mock content for ${path}`),
-  writeFileSync: jest.fn(),
-  existsSync: jest.fn().mockReturnValue(true),
-  mkdirSync: jest.fn()
-}));
+beforeAll(() => {
+  console.log = jest.fn();
+  console.warn = jest.fn();
+  console.error = jest.fn();
+});
 
-// Reset all mocks before each test
-beforeEach(() => {
-  jest.clearAllMocks();
+afterAll(() => {
+  // Restore console
+  Object.assign(console, originalConsole);
 });

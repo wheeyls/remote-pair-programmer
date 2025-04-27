@@ -1,10 +1,10 @@
-const OpenAIAdapter = require('./aiAdapters/openai');
-const AnthropicAdapter = require('./aiAdapters/anthropic');
+import { OpenAIAdapter } from './aiAdapters/openai.js';
+import { AnthropicAdapter } from './aiAdapters/anthropic.js';
 
 /**
  * A wrapper around AI APIs that simplifies model selection and provider switching
  */
-class AIClient {
+export class AIClient {
   /**
    * Creates a new AIClient
    * @param {Object} options - Configuration options
@@ -95,4 +95,3 @@ class AIClient {
   }
 }
 
-module.exports = AIClient;

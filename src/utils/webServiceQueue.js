@@ -1,41 +1,25 @@
-import { createClient } from 'redis';
+import fetch from 'node-fetch';
 
 /**
- * A queue implementation using Redis
+ * A queue implementation using a generic web service
  */
-export class Queue {
+export class WebServiceQueue {
   /**
-   * Create a new Queue instance
+   * Create a new WebServiceQueue instance
    * @param {Object} options - Queue configuration options
-   * @param {string} options.redisUrl - Redis connection URL
+   * @param {string} options.baseUrl - Base URL for the web service
    */
   constructor(options = {}) {
     this.options = options;
     this.name = options.name || 'default';
     this.handlers = new Map();
     
-    // Redis connection string from environment or options
-    this.redisUrl = options.redisUrl || process.env.REDIS_URL;
+    // Base URL for the web service
+    this.baseUrl = options.baseUrl;
     
-    if (!this.redisUrl) {
-      throw new Error('Redis URL is required for queue operations');
+    if (!this.baseUrl) {
+      throw new Error('Base URL is required for web service queue operations');
     }
-    
-    // We'll connect lazily when needed
-    this.client = null;
-  }
-
-  /**
-   * Connect to Redis if not already connected
-   * @private
-   */
-  async _connect() {
-    if (!this.client) {
-      this.client = createClient({ url: this.redisUrl });
-      this.client.on('error', (err) => console.error('Redis Client Error', err));
-      await this.client.connect();
-    }
-    return this.client;
   }
 
   /**
@@ -59,8 +43,6 @@ export class Queue {
   async enqueue(commandType, payload) {
     console.log(`Enqueueing command: ${commandType}`, payload);
     
-    const client = await this._connect();
-    
     const job = {
       id: `job-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       commandType,
@@ -68,8 +50,18 @@ export class Queue {
       addedAt: new Date().toISOString()
     };
     
-    // Add job to the queue
-    await client.lPush(`${this.name}:queue`, JSON.stringify(job));
+    // Add job to the queue via web service
+    const response = await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(job)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to enqueue job: ${response.status} ${response.statusText}`);
+    }
     
     return job.id;
   }
@@ -101,27 +93,47 @@ export class Queue {
    * @returns {Promise<Object|null>} - Result of processing the job, or null if no job
    */
   async processNextJob() {
-    const client = await this._connect();
+    // Get the next job from the queue
+    const response = await fetch(`${this.baseUrl}/next`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
     
-    // Get the next job from the queue (RPOP = right pop, oldest item first)
-    const jobData = await client.rPop(`${this.name}:queue`);
+    if (!response.ok && response.status !== 404) {
+      throw new Error(`Failed to get next job: ${response.status} ${response.statusText}`);
+    }
+    
+    // If no jobs (404) or empty response
+    if (response.status === 404 || response.headers.get('content-length') === '0') {
+      return null;
+    }
+    
+    const jobData = await response.json();
     
     if (!jobData) {
       return null; // No jobs in the queue
     }
     
     try {
-      const job = JSON.parse(jobData);
+      const job = jobData;
       console.log(`Processing job ${job.id} of type ${job.commandType}`);
       
       const result = await this.processCommand(job.commandType, job.payload);
       
       // Record successful completion
-      await client.hSet(`${this.name}:completed`, job.id, JSON.stringify({
-        job,
-        result,
-        completedAt: new Date().toISOString()
-      }));
+      await fetch(`${this.baseUrl}/completed/${job.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          job,
+          result,
+          completedAt: new Date().toISOString()
+        })
+      });
       
       return { job, result };
     } catch (error) {
@@ -129,16 +141,20 @@ export class Queue {
       
       // Record failure
       if (jobData) {
-        const job = JSON.parse(jobData);
-        await client.hSet(`${this.name}:failed`, job.id, JSON.stringify({
-          job,
-          error: error.message,
-          failedAt: new Date().toISOString()
-        }));
+        await fetch(`${this.baseUrl}/failed/${jobData.id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            job: jobData,
+            error: error.message,
+            failedAt: new Date().toISOString()
+          })
+        });
       }
       
       throw error;
     }
   }
 }
-

@@ -1,5 +1,5 @@
-const { modifyCode } = require('../codeChanges');
-const PROMPTS = require('../prompts');
+import { modifyCode } from '../codeChanges.js';
+import PROMPTS from '../prompts.js';
 
 /**
  * Process a request from a PR or comment
@@ -117,4 +117,4 @@ async function generateAIResponse(aiClient, context, promptType = 'COMMENT_RESPO
   }
 }
 
-module.exports = processRequest;
+export default processRequest;

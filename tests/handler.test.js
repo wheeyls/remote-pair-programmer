@@ -1,4 +1,4 @@
-// Import the handler module
+import { jest } from '@jest/globals';
 import { initializeHandler, runHandler } from '../src/handler.js';
 
 describe('Handler', () => {
@@ -7,14 +7,8 @@ describe('Handler', () => {
   let mockQueue;
   
   beforeEach(() => {
-    // Clear all mocks
-    jest.clearAllMocks();
-    
     // Save original environment
     originalEnv = { ...process.env };
-    
-    // Reset modules before each test
-    jest.resetModules();
     
     // Set up environment variables for testing
     process.env.AI_PROVIDER = 'openai';
@@ -22,7 +16,7 @@ describe('Handler', () => {
     process.env.AI_MODEL = 'gpt-4';
     process.env.TRIGGER_PHRASE = '@test-bot';
     
-    // Create mock instances
+    // Create mock instances for dependency injection
     mockAIClient = {
       generateCompletion: jest.fn().mockResolvedValue('Test response')
     };

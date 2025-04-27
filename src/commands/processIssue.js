@@ -1,6 +1,6 @@
-const { Octokit } = require('@octokit/rest');
-const { execSync } = require('child_process');
-const { modifyCode } = require('../codeChanges');
+import { Octokit } from '@octokit/rest';
+import { execSync } from 'child_process';
+import { modifyCode } from '../codeChanges.js';
 
 // Initialize GitHub API client
 const octokit = new Octokit({
@@ -119,4 +119,4 @@ async function processIssue(aiClient, triggerPhrase) {
   }
 }
 
-module.exports = processIssue;
+export default processIssue;

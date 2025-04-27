@@ -1,10 +1,10 @@
-const { Octokit } = require('@octokit/rest');
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const PROMPTS = require('./prompts');
-const AIClient = require('./aiClient');
-const { processFileContext } = require('./utils/fileContext');
+import { Octokit } from '@octokit/rest';
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import PROMPTS from './prompts.js';
+import { AIClient } from './aiClient.js';
+import { processFileContext } from './utils/fileContext.js';
 
 // Initialize GitHub API client
 const octokit = new Octokit({
@@ -204,6 +204,6 @@ function getAllRepoFiles() {
   }
 }
 
-module.exports = {
+export {
   modifyCode
 };

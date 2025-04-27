@@ -1,4 +1,5 @@
-const Queue = require('../src/utils/queue');
+import { jest } from '@jest/globals';
+import { Queue } from '../src/utils/queue.js';
 
 // Mock Redis client
 jest.mock('redis', () => {
@@ -16,7 +17,7 @@ jest.mock('redis', () => {
   };
 });
 
-const redis = require('redis');
+import * as redis from 'redis';
 
 describe('Queue', () => {
   let queue;

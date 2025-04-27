@@ -1,7 +1,7 @@
 /**
  * Base class for AI provider adapters
  */
-class BaseAdapter {
+export class BaseAdapter {
   /**
    * Creates a new AI adapter
    * @param {Object} options - Configuration options
@@ -37,4 +37,3 @@ class BaseAdapter {
   }
 }
 
-module.exports = BaseAdapter;

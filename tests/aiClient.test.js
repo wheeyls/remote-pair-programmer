@@ -1,6 +1,7 @@
-const AIClient = require('../src/aiClient');
-const OpenAIAdapter = require('../src/aiAdapters/openai');
-const AnthropicAdapter = require('../src/aiAdapters/anthropic');
+import { jest } from '@jest/globals';
+import { AIClient } from '../src/aiClient.js';
+import { OpenAIAdapter } from '../src/aiAdapters/openai.js';
+import { AnthropicAdapter } from '../src/aiAdapters/anthropic.js';
 
 // Create mock adapter instances that we can reference in tests
 const mockOpenAIAdapter = {
@@ -24,12 +25,16 @@ const mockAnthropicAdapter = {
 };
 
 // Mock the adapters
-jest.mock('../src/aiAdapters/openai', () => {
-  return jest.fn().mockImplementation(() => mockOpenAIAdapter);
+jest.mock('../src/aiAdapters/openai.js', () => {
+  return {
+    OpenAIAdapter: jest.fn().mockImplementation(() => mockOpenAIAdapter)
+  };
 });
 
-jest.mock('../src/aiAdapters/anthropic', () => {
-  return jest.fn().mockImplementation(() => mockAnthropicAdapter);
+jest.mock('../src/aiAdapters/anthropic.js', () => {
+  return {
+    AnthropicAdapter: jest.fn().mockImplementation(() => mockAnthropicAdapter)
+  };
 });
 
 describe('AIClient', () => {
