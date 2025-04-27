@@ -6,12 +6,17 @@ global.console = {
   error: jest.fn()
 };
 
-// Mock child_process.execSync to avoid executing real commands during tests
+// For ES modules, we need to use a different approach for mocking
+import { jest } from '@jest/globals';
+import { execSync } from 'child_process';
+import fs from 'fs';
+
+// Mock child_process.execSync
 jest.mock('child_process', () => ({
   execSync: jest.fn().mockImplementation(() => 'mocked execSync output')
 }));
 
-// Mock fs module to avoid real file system operations
+// Mock fs module
 jest.mock('fs', () => ({
   readFileSync: jest.fn().mockImplementation((path) => `Mock content for ${path}`),
   writeFileSync: jest.fn(),

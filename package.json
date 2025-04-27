@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "GitHub Actions bot that uses AI to respond to pull requests and comments",
   "main": "src/handler.js",
+  "type": "module",
   "scripts": {
     "worker": "node worker.js",
     "test": "jest",
@@ -52,6 +53,11 @@
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/tests/setup.js"
-    ]
+    ],
+    "transform": {},
+    "extensionsToTreatAsEsm": [".js"],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    }
   }
 }
