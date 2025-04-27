@@ -31,7 +31,6 @@ queue.registerHandler('process-comment', async (payload) => {
 queue.registerHandler('process-issue', async (payload) => {
   return processIssue(aiClient, TRIGGER_PHRASE);
 });
-});
 
 // Get trigger phrase from environment or use default
 const TRIGGER_PHRASE = process.env.TRIGGER_PHRASE || '@github-ai-bot';
@@ -40,11 +39,6 @@ const command = process.argv[2];
 
 if (command === 'process-pr' || command === 'process-comment' || command === 'process-issue') {
   queue.enqueue(command, {}).catch(console.error);
-} else {
-  console.error('Invalid command. Use: process-pr, process-comment, or process-issue');
-  process.exit(1);
-}
-  processIssue(aiClient, TRIGGER_PHRASE).catch(console.error);
 } else {
   console.error('Invalid command. Use: process-pr, process-comment, or process-issue');
   process.exit(1);
