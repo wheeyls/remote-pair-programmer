@@ -2,33 +2,34 @@ const AIClient = require('../src/aiClient');
 const OpenAIAdapter = require('../src/aiAdapters/openai');
 const AnthropicAdapter = require('../src/aiAdapters/anthropic');
 
+// Create mock adapter instances that we can reference in tests
+const mockOpenAIAdapter = {
+  createChatCompletion: jest.fn().mockResolvedValue({
+    choices: [{ message: { content: 'OpenAI response' } }]
+  }),
+  getDefaultModels: jest.fn().mockReturnValue({
+    strong: 'gpt-4.1',
+    weak: 'gpt-4.1-mini'
+  })
+};
+
+const mockAnthropicAdapter = {
+  createChatCompletion: jest.fn().mockResolvedValue({
+    choices: [{ message: { content: 'Anthropic response' } }]
+  }),
+  getDefaultModels: jest.fn().mockReturnValue({
+    strong: 'claude-3-7-sonnet-latest',
+    weak: 'claude-3-haiku-latest'
+  })
+};
+
 // Mock the adapters
 jest.mock('../src/aiAdapters/openai', () => {
-  return jest.fn().mockImplementation(() => {
-    return {
-      createChatCompletion: jest.fn().mockResolvedValue({
-        choices: [{ message: { content: 'OpenAI response' } }]
-      }),
-      getDefaultModels: jest.fn().mockReturnValue({
-        strong: 'gpt-4.1',
-        weak: 'gpt-4.1-mini'
-      })
-    };
-  });
+  return jest.fn().mockImplementation(() => mockOpenAIAdapter);
 });
 
 jest.mock('../src/aiAdapters/anthropic', () => {
-  return jest.fn().mockImplementation(() => {
-    return {
-      createChatCompletion: jest.fn().mockResolvedValue({
-        choices: [{ message: { content: 'Anthropic response' } }]
-      }),
-      getDefaultModels: jest.fn().mockReturnValue({
-        strong: 'claude-3-7-sonnet-latest',
-        weak: 'claude-3-haiku-latest'
-      })
-    };
-  });
+  return jest.fn().mockImplementation(() => mockAnthropicAdapter);
 });
 
 describe('AIClient', () => {
@@ -108,8 +109,7 @@ describe('AIClient', () => {
       temperature: 0.5
     });
     
-    const adapter = OpenAIAdapter.mock.instances[0];
-    expect(adapter.createChatCompletion).toHaveBeenCalledWith({
+    expect(mockOpenAIAdapter.createChatCompletion).toHaveBeenCalledWith({
       model: 'gpt-4.1',
       messages: [
         { role: 'system', content: 'Test prompt' },
@@ -134,8 +134,7 @@ describe('AIClient', () => {
       responseFormat: { type: 'json_object' }
     });
     
-    const adapter = AnthropicAdapter.mock.instances[0];
-    expect(adapter.createChatCompletion).toHaveBeenCalledWith({
+    expect(mockAnthropicAdapter.createChatCompletion).toHaveBeenCalledWith({
       model: 'claude-3-haiku-latest',
       messages: [
         { role: 'system', content: 'Test prompt' },
@@ -159,8 +158,7 @@ describe('AIClient', () => {
       modelStrength: 'strong'
     });
     
-    const adapter = OpenAIAdapter.mock.instances[0];
-    expect(adapter.createChatCompletion).toHaveBeenCalledWith(
+    expect(mockOpenAIAdapter.createChatCompletion).toHaveBeenCalledWith(
       expect.objectContaining({
         messages: [
           { role: 'system', content: 'Test prompt' },
