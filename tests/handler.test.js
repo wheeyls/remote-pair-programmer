@@ -1,19 +1,18 @@
 // Mock the command modules
-jest.mock('../src/commands/processPullRequest.js', () => ({ default: jest.fn() }));
-jest.mock('../src/commands/processComment.js', () => ({ default: jest.fn() }));
-jest.mock('../src/commands/processIssue.js', () => ({ default: jest.fn() }));
-jest.mock('../src/commands/processReviewComment.js', () => ({ default: jest.fn() }));
+jest.mock('../src/commands/processPullRequest.js');
+jest.mock('../src/commands/processComment.js');
+jest.mock('../src/commands/processIssue.js');
+jest.mock('../src/commands/processReviewComment.js');
+
+// Import the handler module
+const { initializeHandler, runHandler } = require('../src/handler.js');
 
 describe('Handler', () => {
   let originalEnv;
-  let processPullRequest;
-  let processComment;
-  let processIssue;
-  let handler;
   let mockAIClient;
   let mockQueue;
   
-  beforeEach(async () => {
+  beforeEach(() => {
     // Clear all mocks
     jest.clearAllMocks();
     
@@ -29,7 +28,7 @@ describe('Handler', () => {
     process.env.AI_MODEL = 'gpt-4';
     process.env.TRIGGER_PHRASE = '@test-bot';
     
-    // Create mock instances directly
+    // Create mock instances
     mockAIClient = {
       generateCompletion: jest.fn().mockResolvedValue('Test response')
     };
@@ -38,18 +37,6 @@ describe('Handler', () => {
       registerHandler: jest.fn(),
       enqueue: jest.fn().mockResolvedValue({})
     };
-    
-    // Get the mocked modules
-    const pullRequestModule = await import('../src/commands/processPullRequest.js');
-    const commentModule = await import('../src/commands/processComment.js');
-    const issueModule = await import('../src/commands/processIssue.js');
-    
-    processPullRequest = pullRequestModule.default;
-    processComment = commentModule.default;
-    processIssue = issueModule.default;
-    
-    // Import the handler module
-    handler = await import('../src/handler.js');
   });
   
   afterEach(() => {
@@ -59,7 +46,7 @@ describe('Handler', () => {
   
   test('registers all command handlers', () => {
     // Initialize the handler with our mocks
-    handler.initializeHandler({
+    initializeHandler({
       aiClient: mockAIClient,
       queue: mockQueue
     });
@@ -74,7 +61,7 @@ describe('Handler', () => {
   
   test('processes pull request command correctly', async () => {
     // Run the handler with the PR command and our mocks
-    await handler.runHandler('process-pr', {
+    await runHandler('process-pr', {
       aiClient: mockAIClient,
       queue: mockQueue
     });
@@ -85,7 +72,7 @@ describe('Handler', () => {
   
   test('processes comment command correctly', async () => {
     // Run the handler with the comment command and our mocks
-    await handler.runHandler('process-comment', {
+    await runHandler('process-comment', {
       aiClient: mockAIClient,
       queue: mockQueue
     });
@@ -96,7 +83,7 @@ describe('Handler', () => {
   
   test('processes issue command correctly', async () => {
     // Run the handler with the issue command and our mocks
-    await handler.runHandler('process-issue', {
+    await runHandler('process-issue', {
       aiClient: mockAIClient,
       queue: mockQueue
     });
@@ -107,7 +94,7 @@ describe('Handler', () => {
   
   test('processes review comment command correctly', async () => {
     // Run the handler with the review comment command and our mocks
-    await handler.runHandler('process-review-comment', {
+    await runHandler('process-review-comment', {
       aiClient: mockAIClient,
       queue: mockQueue
     });
@@ -124,7 +111,7 @@ describe('Handler', () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     
     // Run the handler with an invalid command and our mocks
-    await handler.runHandler('invalid-command', {
+    await runHandler('invalid-command', {
       aiClient: mockAIClient,
       queue: mockQueue
     });

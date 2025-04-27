@@ -1,16 +1,15 @@
-import { AIClient } from './aiClient.js';
-import { Queue } from './utils/queue.js';
+const { AIClient } = require('./aiClient');
+const { Queue } = require('./utils/queue');
 
-import dotenv from 'dotenv';
+const dotenv = require('dotenv');
 dotenv.config({ path: '.env' });
 dotenv.config({ path: '.env.local', override: true });
 
 // Import command modules
-
-import { processPullRequest } from './commands/processPullRequest.js';
-import { processComment } from './commands/processComment.js';
-import { processIssue } from './commands/processIssue.js';
-import { processReviewComment } from './commands/processReviewComment.js';
+const processPullRequest = require('./commands/processPullRequest');
+const processComment = require('./commands/processComment');
+const processIssue = require('./commands/processIssue');
+const processReviewComment = require('./commands/processReviewComment');
 
 /**
  * Initialize the handler with all dependencies
@@ -19,7 +18,7 @@ import { processReviewComment } from './commands/processReviewComment.js';
  * @param {Queue} deps.queue - Queue instance
  * @returns {Object} The initialized handler with queue and AI client
  */
-export function initializeHandler(deps = {}) {
+function initializeHandler(deps = {}) {
   // Use injected dependencies or create new instances
   const aiClient = deps.aiClient || new AIClient({
     apiKey: process.env.AI_PROVIDER === 'anthropic' ? process.env.ANTHROPIC_API_KEY : process.env.AI_API_KEY,
@@ -68,7 +67,7 @@ export function initializeHandler(deps = {}) {
  * @param {Object} deps - Optional dependencies to inject
  * @returns {Promise<any>} - Result of the command execution
  */
-export async function runHandler(command, deps = {}) {
+async function runHandler(command, deps = {}) {
   const { queue } = initializeHandler(deps);
   
   if (command === 'process-pr' || command === 'process-comment' || command === 'process-issue' || command === 'process-review-comment') {
@@ -84,3 +83,8 @@ if (require.main === module) {
   const command = process.argv[2];
   runHandler(command).catch(console.error);
 }
+
+module.exports = {
+  initializeHandler,
+  runHandler
+};
