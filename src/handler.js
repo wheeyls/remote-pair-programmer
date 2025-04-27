@@ -5,13 +5,10 @@ const Queue = require('./utils/queue');
 const processPullRequest = require('./commands/processPullRequest');
 const processComment = require('./commands/processComment');
 const processIssue = require('./commands/processIssue');
-
 // Import command modules
 const processPullRequest = require('./commands/processPullRequest');
 const processComment = require('./commands/processComment');
 const processIssue = require('./commands/processIssue');
-
-// Initialize AI client
 const aiClient = new AIClient({
   apiKey: process.env.AI_PROVIDER === 'anthropic' ? process.env.ANTHROPIC_API_KEY : process.env.AI_API_KEY,
   model: process.env.AI_MODEL || 'gpt-4',
