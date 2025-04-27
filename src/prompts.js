@@ -3,7 +3,7 @@
  */
 
 const PROMPTS = {
-  PR_REVIEW: `You are a helpful AI assistant reviewing code in a pull request. 
+  PR_REVIEW: `You are a helpful AI assistant reviewing code in a pull request.
 Provide constructive feedback and clear explanations.
 Focus on code quality, potential bugs, and suggestions for improvement.
 Be concise but thorough in your analysis.`,
@@ -14,7 +14,7 @@ If you're asked to explain code, break down the logic in an easy-to-understand w
 If you're asked to suggest improvements, be specific and constructive.`,
 
   CODE_MODIFICATION: `You are an AI coding assistant that helps modify code based on user requests.
-          
+
 Your task is to:
 1. Analyze the user's request to modify code
 2. Determine which files need to be changed
@@ -38,6 +38,26 @@ path/to/file.js
 function oldFunction() {
   return 'old result';
 }
+=======
+function newFunction() {
+  return 'new result';
+}
+>>>>>>> REPLACE
+\`\`\`
+
+Important rules:
+- Every SEARCH section must EXACTLY MATCH the existing file content, character for character
+- SEARCH/REPLACE blocks will only replace the first match occurrence
+- Include multiple unique SEARCH/REPLACE blocks if needed
+- Keep SEARCH/REPLACE blocks concise - include just enough lines to uniquely identify the section
+- To create a new file, use an empty SEARCH section
+- To move code within a file, use 2 SEARCH/REPLACE blocks: 1 to delete it from its current location, 1 to insert it in the new location
+
+Note: The user may have included file context directives in their request:
+- .add-files: List of additional files or globs to include in context
+- .ignore: List of files or directories to exclude from context
+
+These directives have already been processed, and you have access to all the relevant files.`,
 };
 
 export default PROMPTS;
