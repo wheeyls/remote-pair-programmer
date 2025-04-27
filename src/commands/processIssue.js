@@ -2,21 +2,25 @@ import { Octokit } from '@octokit/rest';
 import { execSync } from 'child_process';
 import { modifyCode } from '../codeChanges.js';
 
+// Initialize GitHub API client
+const octokit = new Octokit({
+  auth: process.env.GITHUB_TOKEN,
+});
+
 /**
  * Process a GitHub issue and convert it to a PR with code changes
  */
-async function processIssue(aiClient, payload) {
-  const { issueNumber, owner, repo, issue, triggerPhrase } = payload;
-
-  // Initialize GitHub API client with explicit token from environment
-  const octokit = new Octokit({
-    auth: process.env.GITHUB_TOKEN
-  });
+async function processIssue(aiClient, triggerPhrase, payload) {
+  const { issueNumber, owner, repo } = payload;
 
   try {
-    console.log(`Processing issue #${issueNumber} for ${owner}/${repo}`);
-    console.log(`Using GitHub token: ${process.env.GITHUB_TOKEN ? 'Token provided' : 'No token'}`);
-    
+    // Get issue details
+    const { data: issue } = await octokit.issues.get({
+      owner,
+      repo,
+      issue_number: issueNumber,
+    });
+
     const issueBody = issue.body || '';
     const issueTitle = issue.title || '';
 
@@ -26,8 +30,7 @@ async function processIssue(aiClient, payload) {
       !issueBody.includes(triggerPhrase)
     ) {
       console.log('Issue does not contain trigger phrase. Skipping.');
-      console.log(`Issue title: ${issueTitle}`);
-      console.log(`Issue body contains trigger: ${issueBody.includes(triggerPhrase)}`);
+      console.log(JSON.stringify(issue));
       return;
     }
 
