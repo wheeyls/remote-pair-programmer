@@ -72,8 +72,8 @@ runs:
         AI_PROVIDER: ${{ inputs.ai-provider }}
       run: |
         if [ "${{ github.event_name }}" == "pull_request" ]; then
-          node src/handler.js process-pr
+          node -e "require('./src/handler').runHandler('process-pr').catch(console.error)"
         else
-          node src/handler.js process-comment
+          node -e "require('./src/handler').runHandler('process-comment').catch(console.error)"
         fi
       shell: bash

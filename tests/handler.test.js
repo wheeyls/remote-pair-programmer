@@ -30,6 +30,7 @@ describe('Handler', () => {
   let processPullRequest;
   let processComment;
   let processIssue;
+  let handler;
   
   beforeEach(() => {
     // Save original environment
@@ -48,6 +49,9 @@ describe('Handler', () => {
     processPullRequest = require('../src/commands/processPullRequest');
     processComment = require('../src/commands/processComment');
     processIssue = require('../src/commands/processIssue');
+    
+    // Import the handler module
+    handler = require('../src/handler');
   });
   
   afterEach(() => {
@@ -59,10 +63,8 @@ describe('Handler', () => {
   });
   
   test('initializes AIClient with correct parameters', () => {
-    // Execute the handler
-    jest.isolateModules(() => {
-      require('../src/handler');
-    });
+    // Initialize the handler
+    handler.initializeHandler();
     
     // Check if AIClient was initialized correctly
     expect(AIClient).toHaveBeenCalledWith({
@@ -75,10 +77,8 @@ describe('Handler', () => {
   });
   
   test('initializes Queue with correct parameters', () => {
-    // Execute the handler
-    jest.isolateModules(() => {
-      require('../src/handler');
-    });
+    // Initialize the handler
+    handler.initializeHandler();
     
     // Check if Queue was initialized correctly
     expect(Queue).toHaveBeenCalledWith({
@@ -87,10 +87,8 @@ describe('Handler', () => {
   });
   
   test('registers all command handlers', () => {
-    // Execute the handler
-    jest.isolateModules(() => {
-      const handler = require('../src/handler');
-    });
+    // Initialize the handler
+    handler.initializeHandler();
     
     // Get the Queue instance
     const queueInstance = Queue.mock.instances[0];
@@ -103,88 +101,54 @@ describe('Handler', () => {
   });
   
   test('processes pull request command correctly', async () => {
-    // Mock process.argv
-    const originalArgv = process.argv;
-    process.argv = ['node', 'src/handler.js', 'process-pr'];
-    
-    // Execute the handler
-    jest.isolateModules(() => {
-      require('../src/handler');
-    });
+    // Run the handler with the PR command
+    await handler.runHandler('process-pr');
     
     // Get the Queue instance
     const queueInstance = Queue.mock.instances[0];
     
     // Check if the correct command was enqueued
     expect(queueInstance.enqueue).toHaveBeenCalledWith('process-pr', {});
-    
-    // Restore process.argv
-    process.argv = originalArgv;
   });
   
   test('processes comment command correctly', async () => {
-    // Mock process.argv
-    const originalArgv = process.argv;
-    process.argv = ['node', 'src/handler.js', 'process-comment'];
-    
-    // Execute the handler
-    jest.isolateModules(() => {
-      require('../src/handler');
-    });
+    // Run the handler with the comment command
+    await handler.runHandler('process-comment');
     
     // Get the Queue instance
     const queueInstance = Queue.mock.instances[0];
     
     // Check if the correct command was enqueued
     expect(queueInstance.enqueue).toHaveBeenCalledWith('process-comment', {});
-    
-    // Restore process.argv
-    process.argv = originalArgv;
   });
   
   test('processes issue command correctly', async () => {
-    // Mock process.argv
-    const originalArgv = process.argv;
-    process.argv = ['node', 'src/handler.js', 'process-issue'];
-    
-    // Execute the handler
-    jest.isolateModules(() => {
-      require('../src/handler');
-    });
+    // Run the handler with the issue command
+    await handler.runHandler('process-issue');
     
     // Get the Queue instance
     const queueInstance = Queue.mock.instances[0];
     
     // Check if the correct command was enqueued
     expect(queueInstance.enqueue).toHaveBeenCalledWith('process-issue', {});
-    
-    // Restore process.argv
-    process.argv = originalArgv;
   });
   
   test('exits with error for invalid command', () => {
-    // Mock process.argv and process.exit
-    const originalArgv = process.argv;
-    const originalExit = process.exit;
-    process.argv = ['node', 'src/handler.js', 'invalid-command'];
-    process.exit = jest.fn();
+    // Mock process.exit
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {});
     
     // Mock console.error
-    const originalConsoleError = console.error;
-    console.error = jest.fn();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     
-    // Execute the handler
-    jest.isolateModules(() => {
-      require('../src/handler');
-    });
+    // Run the handler with an invalid command
+    handler.runHandler('invalid-command');
     
     // Check if error was logged and process.exit was called
-    expect(console.error).toHaveBeenCalledWith('Invalid command. Use: process-pr, process-comment, or process-issue');
-    expect(process.exit).toHaveBeenCalledWith(1);
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Invalid command. Use: process-pr, process-comment, or process-issue');
+    expect(mockExit).toHaveBeenCalledWith(1);
     
     // Restore mocks
-    process.argv = originalArgv;
-    process.exit = originalExit;
-    console.error = originalConsoleError;
+    mockExit.mockRestore();
+    consoleErrorSpy.mockRestore();
   });
 });

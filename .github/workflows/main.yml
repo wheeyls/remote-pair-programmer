@@ -46,10 +46,10 @@ jobs:
           AI_PROVIDER: 'anthropic'
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            node src/handler.js process-pr
+            node -e "require('./src/handler').runHandler('process-pr').catch(console.error)"
           elif [ "${{ github.event_name }}" == "issues" ]; then
-            node src/handler.js process-issue
+            node -e "require('./src/handler').runHandler('process-issue').catch(console.error)"
           else
-            node src/handler.js process-comment
+            node -e "require('./src/handler').runHandler('process-comment').catch(console.error)"
           fi
 
