@@ -52,4 +52,3 @@ jobs:
           else
             node -e "require('./src/handler').runHandler('process-comment').catch(console.error)"
           fi
-
