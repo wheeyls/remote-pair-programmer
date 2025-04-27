@@ -1,11 +1,11 @@
 import { Octokit } from '@octokit/rest';
-import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import PROMPTS from './prompts.js';
 import { AIClient } from './aiClient.js';
 import { processFileContext } from './utils/fileContext.js';
+import GitClient from './utils/gitClient.js';
 
 /**
  * Analyzes a request to modify code and makes the requested changes
@@ -40,6 +40,9 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
     const octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN
     });
+    
+    // Initialize Git client with GitHub token
+    const git = new GitClient(process.env.GITHUB_TOKEN);
 
     let files = [];
     let branch = '';
@@ -67,10 +70,7 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
       repoUrl = pullRequest.head.repo.clone_url;
 
       // 2. Clone only the specific branch with minimal history
-      // Use token authentication for the git clone
-      const tokenUrl = repoUrl.replace('https://', `https://x-access-token:${process.env.GITHUB_TOKEN}@`);
-      console.log(`Cloning repository ${repoUrl.replace(/\/\/.*@/, '//***@')} branch ${branch}...`);
-      execSync(`git clone --depth 1 --branch ${branch} "${tokenUrl}" .`);
+      git.clone(repoUrl, branch);
     } else {
       // For issues, clone the default branch with minimal history
       const { data: repoData } = await octokit.repos.get({
@@ -81,21 +81,13 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
       branch = repoData.default_branch;
       repoUrl = repoData.clone_url;
 
-      // Use token authentication for the git clone
-      const tokenUrl = repoUrl.replace('https://', `https://x-access-token:${process.env.GITHUB_TOKEN}@`);
-      console.log(`Cloning repository ${repoUrl.replace(/\/\/.*@/, '//***@')} branch ${branch}...`);
-      execSync(`git clone --depth 1 --branch ${branch} "${tokenUrl}" .`);
-
-      // Create a new branch for the issue
+      // Clone the repository and create a new branch for the issue
+      git.clone(repoUrl, branch);
+      
       const newBranch = `ai-changes-issue-${prNumber}`;
-      console.log(`Creating new branch: ${newBranch}`);
-      execSync(`git checkout -b ${newBranch}`);
+      git.checkoutNewBranch(newBranch);
       branch = newBranch;
     }
-
-    // Configure git
-    execSync('git config user.name "GitHub AI Actions"');
-    execSync('git config user.email "github-actions[bot]@users.noreply.github.com"');
 
     // 3. Get file contents for relevant files
     let additionalFiles = [];
@@ -181,13 +173,9 @@ Requested by comment on PR #${prNumber}`;
     // Sanitize the commit message for command line safety
     commitMessage = sanitizeForShell(commitMessage);
 
-    execSync('git add .');
-    execSync(`git commit -m "${commitMessage}"`);
-
-    // Push with authentication using the token
-    const tokenUrl = repoUrl.replace('https://', `https://x-access-token:${process.env.GITHUB_TOKEN}@`);
-    console.log(`Pushing changes to branch ${branch}...`);
-    execSync(`git push ${tokenUrl} ${branch}`);
+    git.addAll();
+    git.commit(commitMessage);
+    git.push(repoUrl, branch);
 
     // Return to original directory and clean up
     process.chdir(originalDir);
