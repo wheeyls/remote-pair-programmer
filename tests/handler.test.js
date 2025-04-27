@@ -31,8 +31,13 @@ describe('Handler', () => {
   let processComment;
   let processIssue;
   let handler;
+  let mockAIClientInstance;
+  let mockQueueInstance;
   
   beforeEach(() => {
+    // Clear all mocks
+    jest.clearAllMocks();
+    
     // Save original environment
     originalEnv = { ...process.env };
     
@@ -44,6 +49,20 @@ describe('Handler', () => {
     process.env.AI_API_KEY = 'test-api-key';
     process.env.AI_MODEL = 'gpt-4';
     process.env.TRIGGER_PHRASE = '@test-bot';
+    
+    // Create mock instances that we can reference in tests
+    mockAIClientInstance = {
+      generateCompletion: jest.fn().mockResolvedValue('Test response')
+    };
+    
+    mockQueueInstance = {
+      registerHandler: jest.fn(),
+      enqueue: jest.fn().mockResolvedValue({})
+    };
+    
+    // Override the constructor implementations to use our instances
+    AIClient.mockImplementation(() => mockAIClientInstance);
+    Queue.mockImplementation(() => mockQueueInstance);
     
     // Get the mocked modules
     processPullRequest = require('../src/commands/processPullRequest');
@@ -57,9 +76,6 @@ describe('Handler', () => {
   afterEach(() => {
     // Restore original environment
     process.env = originalEnv;
-    
-    // Clear all mocks
-    jest.clearAllMocks();
   });
   
   test('initializes AIClient with correct parameters', () => {
@@ -90,47 +106,35 @@ describe('Handler', () => {
     // Initialize the handler
     handler.initializeHandler();
     
-    // Get the Queue instance
-    const queueInstance = Queue.mock.instances[0];
-    
     // Check if all handlers were registered
-    expect(queueInstance.registerHandler).toHaveBeenCalledTimes(3);
-    expect(queueInstance.registerHandler).toHaveBeenCalledWith('process-pr', expect.any(Function));
-    expect(queueInstance.registerHandler).toHaveBeenCalledWith('process-comment', expect.any(Function));
-    expect(queueInstance.registerHandler).toHaveBeenCalledWith('process-issue', expect.any(Function));
+    expect(mockQueueInstance.registerHandler).toHaveBeenCalledTimes(3);
+    expect(mockQueueInstance.registerHandler).toHaveBeenCalledWith('process-pr', expect.any(Function));
+    expect(mockQueueInstance.registerHandler).toHaveBeenCalledWith('process-comment', expect.any(Function));
+    expect(mockQueueInstance.registerHandler).toHaveBeenCalledWith('process-issue', expect.any(Function));
   });
   
   test('processes pull request command correctly', async () => {
     // Run the handler with the PR command
     await handler.runHandler('process-pr');
     
-    // Get the Queue instance
-    const queueInstance = Queue.mock.instances[0];
-    
     // Check if the correct command was enqueued
-    expect(queueInstance.enqueue).toHaveBeenCalledWith('process-pr', {});
+    expect(mockQueueInstance.enqueue).toHaveBeenCalledWith('process-pr', {});
   });
   
   test('processes comment command correctly', async () => {
     // Run the handler with the comment command
     await handler.runHandler('process-comment');
     
-    // Get the Queue instance
-    const queueInstance = Queue.mock.instances[0];
-    
     // Check if the correct command was enqueued
-    expect(queueInstance.enqueue).toHaveBeenCalledWith('process-comment', {});
+    expect(mockQueueInstance.enqueue).toHaveBeenCalledWith('process-comment', {});
   });
   
   test('processes issue command correctly', async () => {
     // Run the handler with the issue command
     await handler.runHandler('process-issue');
     
-    // Get the Queue instance
-    const queueInstance = Queue.mock.instances[0];
-    
     // Check if the correct command was enqueued
-    expect(queueInstance.enqueue).toHaveBeenCalledWith('process-issue', {});
+    expect(mockQueueInstance.enqueue).toHaveBeenCalledWith('process-issue', {});
   });
   
   test('exits with error for invalid command', () => {
