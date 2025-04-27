@@ -1,15 +1,15 @@
-const { AIClient } = require('./aiClient');
-const { Queue } = require('./utils/queue');
+import { AIClient } from './aiClient.js';
+import { Queue } from './utils/queue.js';
 
-const dotenv = require('dotenv');
+import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 dotenv.config({ path: '.env.local', override: true });
 
 // Import command modules
-const processPullRequest = require('./commands/processPullRequest');
-const processComment = require('./commands/processComment');
-const processIssue = require('./commands/processIssue');
-const processReviewComment = require('./commands/processReviewComment');
+import processPullRequest from './commands/processPullRequest.js';
+import processComment from './commands/processComment.js';
+import processIssue from './commands/processIssue.js';
+import processReviewComment from './commands/processReviewComment.js';
 
 /**
  * Initialize the handler with all dependencies
@@ -18,7 +18,7 @@ const processReviewComment = require('./commands/processReviewComment');
  * @param {Queue} deps.queue - Queue instance
  * @returns {Object} The initialized handler with queue and AI client
  */
-function initializeHandler(deps = {}) {
+export function initializeHandler(deps = {}) {
   // Use injected dependencies or create new instances
   const aiClient = deps.aiClient || new AIClient({
     apiKey: process.env.AI_PROVIDER === 'anthropic' ? process.env.ANTHROPIC_API_KEY : process.env.AI_API_KEY,
@@ -67,7 +67,7 @@ function initializeHandler(deps = {}) {
  * @param {Object} deps - Optional dependencies to inject
  * @returns {Promise<any>} - Result of the command execution
  */
-async function runHandler(command, deps = {}) {
+export async function runHandler(command, deps = {}) {
   const { queue } = initializeHandler(deps);
   
   if (command === 'process-pr' || command === 'process-comment' || command === 'process-issue' || command === 'process-review-comment') {
@@ -79,12 +79,7 @@ async function runHandler(command, deps = {}) {
 }
 
 // Only run the handler if this file is being executed directly
-if (require.main === module) {
+if (import.meta.url === import.meta.resolve(process.argv[1])) {
   const command = process.argv[2];
   runHandler(command).catch(console.error);
 }
-
-module.exports = {
-  initializeHandler,
-  runHandler
-};

@@ -5,7 +5,7 @@ jest.mock('../src/commands/processIssue.js');
 jest.mock('../src/commands/processReviewComment.js');
 
 // Import the handler module
-const { initializeHandler, runHandler } = require('../src/handler.js');
+import { initializeHandler, runHandler } from '../src/handler.js';
 
 describe('Handler', () => {
   let originalEnv;

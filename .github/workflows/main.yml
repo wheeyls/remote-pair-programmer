@@ -49,11 +49,11 @@ jobs:
           AI_PROVIDER: 'anthropic'
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            node -e "require('./src/handler').runHandler('process-pr').catch(console.error)"
+            node --input-type=module -e "import { runHandler } from './src/handler.js'; runHandler('process-pr').catch(console.error)"
           elif [ "${{ github.event_name }}" == "issues" ]; then
-            node -e "require('./src/handler').runHandler('process-issue').catch(console.error)"
+            node --input-type=module -e "import { runHandler } from './src/handler.js'; runHandler('process-issue').catch(console.error)"
           elif [ "${{ github.event_name }}" == "pull_request_review_comment" ]; then
-            node -e "require('./src/handler').runHandler('process-review-comment').catch(console.error)"
+            node --input-type=module -e "import { runHandler } from './src/handler.js'; runHandler('process-review-comment').catch(console.error)"
           else
-            node -e "require('./src/handler').runHandler('process-comment').catch(console.error)"
+            node --input-type=module -e "import { runHandler } from './src/handler.js'; runHandler('process-comment').catch(console.error)"
           fi
