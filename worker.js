@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
 import { initializeHandler } from './src/handler.js';
-import { createQueue } from './src/utils/queueFactory.js';
 
 // Load environment variables
 dotenv.config({ path: '.env' });
@@ -12,7 +11,7 @@ async function startWorker() {
   // Initialize the handler which sets up the queue and registers handlers
   const { queue } = initializeHandler();
   
-  console.log(`Worker connected to Redis queue: ${queue.name}`);
+  console.log(`Worker connected to web service queue: ${queue.name}`);
   console.log('Waiting for jobs...');
   
   // Process jobs in a loop
@@ -40,11 +39,8 @@ async function startWorker() {
   processJobs();
   
   // Handle graceful shutdown
-  process.on('SIGINT', async () => {
+  process.on('SIGINT', () => {
     console.log('Shutting down worker...');
-    if (queue.client) {
-      await queue.client.quit();
-    }
     process.exit(0);
   });
 }

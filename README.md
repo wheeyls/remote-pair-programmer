@@ -96,9 +96,7 @@ jobs:
 
 - `AI_API_KEY` - Your OpenAI API key (when using OpenAI provider)
 - `ANTHROPIC_API_KEY` - Your Anthropic API key (when using Anthropic provider)
-- `REDIS_URL` - Your Redis connection URL (when using Redis queue)
-- `QUEUE_SERVICE_URL` - Your queue web service URL (when using web service queue)
-- `QUEUE_TYPE` - Type of queue to use (`redis` or `webservice`)
+- `QUEUE_SERVICE_URL` - Your queue web service URL
 
 To add your secrets to GitHub Actions:
 
@@ -120,12 +118,9 @@ To add your secrets to GitHub Actions:
 | `trigger-phrase` | Phrase to trigger the agent | No | `@github-ai-bot` |
 | `ai-provider` | AI provider to use (openai or anthropic) | No | `openai` |
 | `anthropic-base-url` | Base URL for Anthropic API (if needed) | No | `https://api.anthropic.com` |
-| `queue-type` | Type of queue to use (redis or webservice) | No | `redis` |
-| `redis-url` | Redis URL for queue operations | No** | N/A |
-| `queue-service-url` | Web service URL for queue operations | No** | N/A |
+| `queue-service-url` | Web service URL for queue operations | Yes | N/A |
 
-*Either `openai-api-key` or `anthropic-api-key` is required depending on which provider you use.  
-**Either `redis-url` or `queue-service-url` is required depending on which queue type you use.
+*Either `openai-api-key` or `anthropic-api-key` is required depending on which provider you use.
 
 ## Examples
 

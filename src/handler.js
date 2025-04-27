@@ -28,11 +28,9 @@ export function initializeHandler(deps = {}) {
     provider: process.env.AI_PROVIDER || 'openai'
   });
 
-  // Initialize queue using the factory
+  // Initialize web service queue
   const queue = deps.queue || createQueue({
     name: 'github-ai-agent',
-    queueType: process.env.QUEUE_TYPE,
-    redisUrl: process.env.REDIS_URL,
     baseUrl: process.env.QUEUE_SERVICE_URL
   });
 
