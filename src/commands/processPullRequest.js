@@ -1,5 +1,6 @@
 import { Octokit } from '@octokit/rest';
 import processRequest from '../utils/processRequest.js';
+import handleError from '../utils/errorHandler.js';
 
 // Initialize GitHub API client
 const octokit = new Octokit({
@@ -47,16 +48,14 @@ async function processPullRequest(aiClient, triggerPhrase, payload) {
       octokit,
     });
   } catch (error) {
-    console.error('Error processing pull request:', error);
-
-    // Post error message as a comment on the PR
-    await octokit.issues.createComment({
+    await handleError({
+      error,
+      octokit,
       owner,
       repo,
-      issue_number: prNumber,
-      body: `❌ I encountered an error while processing this PR:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or contact support.`,
+      issueNumber: prNumber
     });
-
+    
     throw error;
   }
 }

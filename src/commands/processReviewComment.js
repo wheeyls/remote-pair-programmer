@@ -1,5 +1,6 @@
 import { Octokit } from '@octokit/rest';
 import processRequest from '../utils/processRequest.js';
+import handleError from '../utils/errorHandler.js';
 
 // Initialize GitHub API client
 const octokit = new Octokit({
@@ -62,15 +63,14 @@ async function processReviewComment(aiClient, triggerPhrase, payload) {
       octokit,
     });
   } catch (error) {
-    console.error('Error processing review comment:', error);
-
-    // Post error message as a reply
-    await octokit.pulls.createReplyForReviewComment({
+    await handleError({
+      error,
+      octokit,
       owner,
       repo,
-      pull_number: prNumber,
-      comment_id: commentId,
-      body: `❌ I encountered an error while processing your request:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or rephrase your request.`,
+      issueNumber: prNumber,
+      commentId,
+      isReviewComment: true
     });
   }
 }

@@ -1,5 +1,6 @@
 import { modifyCode } from '../codeChanges.js';
 import PROMPTS from '../prompts.js';
+import handleError from './errorHandler.js';
 
 /**
  * Process a request from a PR or comment
@@ -84,14 +85,13 @@ async function processRequest(params) {
       return { success: true, isCodeMod: false, response: aiResponse };
     }
   } catch (error) {
-    console.error('Error processing request:', error);
-    
-    // Post error message as a reply
-    await octokit.issues.createComment({
+    // Use the shared error handler
+    await handleError({
+      error,
+      octokit,
       owner,
       repo,
-      issue_number: prNumber,
-      body: `❌ I encountered an error while processing your request:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or rephrase your request.${aiSignature}`
+      issueNumber: prNumber
     });
 
     return { success: false, error: error.message };

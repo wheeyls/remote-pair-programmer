@@ -1,6 +1,7 @@
 import { Octokit } from '@octokit/rest';
 import { execSync } from 'child_process';
 import { modifyCode } from '../codeChanges.js';
+import handleError from '../utils/errorHandler.js';
 
 // Initialize GitHub API client
 const octokit = new Octokit({
@@ -108,14 +109,12 @@ async function processIssue(aiClient, triggerPhrase, payload) {
         )}\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${owner}/${repo}/compare/${baseBranch}...${newBranch}?expand=1`,
     });
   } catch (error) {
-    console.error('Error processing issue:', error);
-
-    // Post error message as a comment on the issue
-    await octokit.issues.createComment({
+    await handleError({
+      error,
+      octokit,
       owner,
       repo,
-      issue_number: issueNumber,
-      body: `❌ I encountered an error while processing your request:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or rephrase your request.`,
+      issueNumber
     });
   }
 }
