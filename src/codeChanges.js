@@ -2,14 +2,10 @@ import { Octokit } from '@octokit/rest';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import PROMPTS from './prompts.js';
 import { AIClient } from './aiClient.js';
 import { processFileContext } from './utils/fileContext.js';
-
-// Initialize GitHub API client
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN
-});
 
 /**
  * Analyzes a request to modify code and makes the requested changes
@@ -22,12 +18,25 @@ const octokit = new Octokit({
  * @returns {Object} - Result of the code modification operation
  */
 async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
+  // Create a temporary directory for the repository
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'github-ai-'));
+  const originalDir = process.cwd();
+  
   try {
+    console.log(`Created temporary directory: ${tempDir}`);
+    process.chdir(tempDir);
+    
+    // Initialize GitHub API client
+    const octokit = new Octokit({
+      auth: process.env.GITHUB_TOKEN
+    });
+    
     let files = [];
     let branch = '';
+    let repoUrl = '';
     
     // Check if we're working with a PR or an issue
-    const isPR = await isPullRequest(owner, repo, prNumber);
+    const isPR = await isPullRequest(octokit, owner, repo, prNumber);
     
     if (isPR) {
       // 1. Get PR details and files
@@ -45,11 +54,34 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
       
       files = prFiles;
       branch = pullRequest.head.ref;
+      repoUrl = pullRequest.head.repo.clone_url;
       
-      // 2. Checkout the PR branch
-      execSync(`git fetch origin ${branch} && git checkout ${branch}`);
+      // 2. Clone only the specific branch with minimal history
+      console.log(`Cloning repository ${repoUrl} branch ${branch}...`);
+      execSync(`git clone --depth 1 --branch ${branch} ${repoUrl} .`);
+    } else {
+      // For issues, clone the default branch with minimal history
+      const { data: repoData } = await octokit.repos.get({
+        owner,
+        repo
+      });
+      
+      branch = repoData.default_branch;
+      repoUrl = repoData.clone_url;
+      
+      console.log(`Cloning repository ${repoUrl} branch ${branch}...`);
+      execSync(`git clone --depth 1 --branch ${branch} ${repoUrl} .`);
+      
+      // Create a new branch for the issue
+      const newBranch = `ai-changes-issue-${prNumber}`;
+      console.log(`Creating new branch: ${newBranch}`);
+      execSync(`git checkout -b ${newBranch}`);
+      branch = newBranch;
     }
-    // If it's an issue, we're already on the correct branch from the caller
+    
+    // Configure git
+    execSync('git config user.name "GitHub AI Actions"');
+    execSync('git config user.email "github-actions[bot]@users.noreply.github.com"');
     
     // 3. Get file contents for relevant files
     let baseFiles = [];
@@ -133,11 +165,18 @@ Requested by comment on PR #${prNumber}`;
     // Sanitize the commit message for command line safety
     commitMessage = sanitizeForShell(commitMessage);
     
-    execSync('git config user.name "GitHub AI Actions"');
-    execSync('git config user.email "github-actions[bot]@users.noreply.github.com"');
     execSync('git add .');
     execSync(`git commit -m "${commitMessage}"`);
-    execSync(`git push origin ${branch}`);
+    
+    // Push with authentication using the token
+    const tokenUrl = repoUrl.replace('https://', `https://x-access-token:${process.env.GITHUB_TOKEN}@`);
+    console.log(`Pushing changes to branch ${branch}...`);
+    execSync(`git push ${tokenUrl} ${branch}`);
+    
+    // Return to original directory and clean up
+    process.chdir(originalDir);
+    console.log(`Cleaning up temporary directory: ${tempDir}`);
+    fs.rmSync(tempDir, { recursive: true, force: true });
     
     return {
       success: true,
@@ -146,6 +185,15 @@ Requested by comment on PR #${prNumber}`;
     };
   } catch (error) {
     console.error('Error modifying code:', error);
+    
+    // Make sure we return to the original directory and clean up
+    try {
+      process.chdir(originalDir);
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch (cleanupError) {
+      console.error('Error during cleanup:', cleanupError);
+    }
+    
     return {
       success: false,
       error: error.message
@@ -155,12 +203,13 @@ Requested by comment on PR #${prNumber}`;
 
 /**
  * Check if the given number refers to a PR or an issue
+ * @param {Object} octokit - Octokit instance
  * @param {string} owner - Repository owner
  * @param {string} repo - Repository name
  * @param {number} number - PR or issue number
  * @returns {Promise<boolean>} - True if it's a PR, false if it's an issue
  */
-async function isPullRequest(owner, repo, number) {
+async function isPullRequest(octokit, owner, repo, number) {
   try {
     await octokit.pulls.get({
       owner,

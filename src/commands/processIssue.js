@@ -69,18 +69,8 @@ async function processIssue(aiClient, triggerPhrase, payload) {
       );
     }
 
-    // Checkout the new branch locally
-    try {
-      execSync(
-        `git fetch origin ${newBranch} || git fetch origin ${baseBranch}`
-      );
-      execSync(
-        `git checkout ${newBranch} || git checkout -b ${newBranch} origin/${baseBranch}`
-      );
-    } catch (error) {
-      console.error(`Error checking out branch: ${error.message}`);
-      throw error;
-    }
+    // We don't need to checkout the branch locally here anymore
+    // The modifyCode function will handle cloning the repository
 
     // Make the requested changes
     const result = await modifyCode({
