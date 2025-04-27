@@ -8,10 +8,14 @@ const processIssue = require('./commands/processIssue');
 
 /**
  * Initialize the handler with all dependencies
+ * @param {Object} deps - Optional dependencies to inject
+ * @param {AIClient} deps.aiClient - AIClient instance
+ * @param {Queue} deps.queue - Queue instance
  * @returns {Object} The initialized handler with queue and AI client
  */
-function initializeHandler() {
-  const aiClient = new AIClient({
+function initializeHandler(deps = {}) {
+  // Use injected dependencies or create new instances
+  const aiClient = deps.aiClient || new AIClient({
     apiKey: process.env.AI_PROVIDER === 'anthropic' ? process.env.ANTHROPIC_API_KEY : process.env.AI_API_KEY,
     model: process.env.AI_MODEL || 'gpt-4',
     strongModel: process.env.STRONG_AI_MODEL,
@@ -20,7 +24,7 @@ function initializeHandler() {
   });
 
   // Initialize queue
-  const queue = new Queue({
+  const queue = deps.queue || new Queue({
     name: 'github-ai-agent'
   });
 
@@ -50,10 +54,11 @@ function initializeHandler() {
 /**
  * Run the handler with the specified command
  * @param {string} command - The command to run
+ * @param {Object} deps - Optional dependencies to inject
  * @returns {Promise<any>} - Result of the command execution
  */
-async function runHandler(command) {
-  const { queue } = initializeHandler();
+async function runHandler(command, deps = {}) {
+  const { queue } = initializeHandler(deps);
   
   if (command === 'process-pr' || command === 'process-comment' || command === 'process-issue') {
     return queue.enqueue(command, {});
