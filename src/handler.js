@@ -9,6 +9,7 @@ dotenv.config({ path: '.env.local', override: true });
 import processPullRequest from './commands/processPullRequest.js';
 import processComment from './commands/processComment.js';
 import processIssue from './commands/processIssue.js';
+import processIssueComment from './commands/processIssueComment.js';
 import processReviewComment from './commands/processReviewComment.js';
 import processRevert from './commands/processRevert.js';
 
@@ -59,6 +60,10 @@ export function initializeHandler(deps = {}) {
     return processIssue(aiClient, TRIGGER_PHRASE, payload);
   });
 
+  queue.registerHandler('process-issue-comment', async (payload) => {
+    return processIssueComment(aiClient, TRIGGER_PHRASE, payload);
+  });
+
   queue.registerHandler('process-review-comment', async (payload) => {
     return processReviewComment(aiClient, TRIGGER_PHRASE, payload);
   });
@@ -91,6 +96,11 @@ export async function runHandler(command, deps = {}) {
     const issueNumber = prNumber;
 
     return queue.enqueue(command, { owner, repo, issueNumber });
+  } else if (command === 'process-issue-comment') {
+    const commentId = process.env.COMMENT_ID;
+    const issueNumber = prNumber;
+
+    return queue.enqueue(command, { owner, repo, issueNumber, commentId });
   } else if (command === 'process-comment') {
     const commentId = process.env.COMMENT_ID;
 
@@ -108,7 +118,7 @@ export async function runHandler(command, deps = {}) {
     return queue.enqueue(command, { owner, repo, prNumber, commentId });
   } else {
     console.error(
-      'Invalid command. Use: process-pr, process-comment, process-issue, process-review-comment, or process-revert'
+      'Invalid command. Use: process-pr, process-comment, process-issue, process-issue-comment, process-review-comment, or process-revert'
     );
     process.exit(1);
   }

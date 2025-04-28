@@ -21,15 +21,15 @@ import { applyPatches, sanitizeForShell } from './fileUtils.js';
  * @param {Object} [params.utils] - Utility functions for testing (optional)
  * @returns {Object} - Result of the code modification operation
  */
-async function modifyCode({ 
-  owner, 
-  repo, 
-  prNumber, 
-  requestText, 
-  aiClient, 
-  octokit, 
+async function modifyCode({
+  owner,
+  repo,
+  prNumber,
+  requestText,
+  aiClient,
+  octokit,
   git,
-  utils = {} 
+  utils = {},
 }) {
   console.log('MODIFY CODE IS ENTERED');
   // Create a temporary directory for the repository
@@ -42,7 +42,7 @@ async function modifyCode({
     getRefinedExplanation: getExplanation = getRefinedExplanation,
     processFileContext: processFiles = processFileContext,
     applyPatches: applyChanges = applyPatches,
-    isPullRequest: isPR = isPullRequest
+    isPullRequest: isPR = isPullRequest,
   } = utils;
 
   try {
@@ -63,9 +63,11 @@ async function modifyCode({
     }
 
     // Initialize GitHub API client
-    octokit = octokit || new Octokit({
-      auth: process.env.GITHUB_TOKEN,
-    });
+    octokit =
+      octokit ||
+      new Octokit({
+        auth: process.env.GITHUB_TOKEN,
+      });
 
     // Initialize Git client with GitHub token
     git = git || new GitClient(process.env.GITHUB_TOKEN);
@@ -74,11 +76,11 @@ async function modifyCode({
     let branch = '';
     let repoUrl = '';
 
-    // Check if we're working with a PR or an issue
+    // Determine the branch and repository URL based on the context
     const isPullReq = await isPR(octokit, owner, repo, prNumber);
 
     if (isPullReq) {
-      // 1. Get PR details and files
+      // For pull requests, use the PR's head branch
       const { data: pullRequest } = await octokit.pulls.get({
         owner,
         repo,
@@ -95,24 +97,45 @@ async function modifyCode({
       branch = pullRequest.head.ref;
       repoUrl = pullRequest.head.repo.clone_url;
 
-      // 2. Clone only the specific branch with minimal history
+      // Clone only the specific branch with minimal history
       git.clone(repoUrl, branch);
     } else {
-      // For issues, clone the default branch with minimal history
+      // For issues, we need to determine if we already have a branch or need to create one
       const { data: repoData } = await octokit.repos.get({
         owner,
         repo,
       });
 
-      branch = repoData.default_branch;
       repoUrl = repoData.clone_url;
+      const issueBranch = `ai-bot/ai-changes-issue-${prNumber}`;
 
-      // Clone the repository and create a new branch for the issue
-      git.clone(repoUrl, branch);
+      // Check if the branch already exists
+      let branchExists = false;
+      try {
+        await octokit.git.getRef({
+          owner,
+          repo,
+          ref: `heads/${issueBranch}`,
+        });
+        branchExists = true;
+      } catch (error) {
+        // Branch doesn't exist yet
+        branchExists = false;
+      }
 
-      const newBranch = `ai-bot/ai-changes-issue-${prNumber}`;
-      git.checkoutNewBranch(newBranch);
-      branch = newBranch;
+      if (branchExists) {
+        // If branch exists, use it directly
+        branch = issueBranch;
+        git.clone(repoUrl, branch);
+      } else {
+        // If branch doesn't exist, create it from the default branch
+        branch = repoData.default_branch;
+        git.clone(repoUrl, branch);
+
+        // Create and checkout a new branch for the issue
+        git.checkoutNewBranch(issueBranch);
+        branch = issueBranch;
+      }
     }
 
     // 3. Get file contents for relevant files
@@ -154,7 +177,12 @@ ${Object.entries(fileContents)
 
     // Apply blocks with retry logic
     let currentBlocks = searchReplaceBlocks;
-    currentBlocks = await applyChanges(currentBlocks, changedFiles, aiClient, contextContent);
+    currentBlocks = await applyChanges(
+      currentBlocks,
+      changedFiles,
+      aiClient,
+      contextContent
+    );
 
     // 7. Commit and push the changes
     let commitMessage = await getExplanation(explanation, aiClient);
