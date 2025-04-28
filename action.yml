@@ -49,12 +49,6 @@ runs:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.ref }}
         token: ${{ github.token }}
-        
-    - name: Configure Git
-      run: |
-        git config --global user.name "GitHub AI Actions"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      shell: bash
 
     - name: Setup Node.js
       uses: actions/setup-node@v3

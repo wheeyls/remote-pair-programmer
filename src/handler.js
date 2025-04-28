@@ -1,6 +1,5 @@
 import { AIClient } from './aiClient.js';
 import { createQueue } from './utils/queueFactory.js';
-import GitClient from './utils/gitClient.js';
 
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
@@ -11,6 +10,7 @@ import processPullRequest from './commands/processPullRequest.js';
 import processComment from './commands/processComment.js';
 import processIssue from './commands/processIssue.js';
 import processReviewComment from './commands/processReviewComment.js';
+import processRevert from './commands/processRevert.js';
 
 /**
  * Initialize the handler with all dependencies
@@ -63,6 +63,10 @@ export function initializeHandler(deps = {}) {
     return processReviewComment(aiClient, TRIGGER_PHRASE, payload);
   });
 
+  queue.registerHandler('process-revert', async (payload) => {
+    return processRevert(aiClient, TRIGGER_PHRASE, payload);
+  });
+
   return {
     aiClient,
     queue,
@@ -83,20 +87,6 @@ export async function runHandler(command, deps = {}) {
   const repo = process.env.REPO_NAME;
   const prNumber = process.env.PR_NUMBER;
 
-  // Check for revert directive in comment body
-  if ((command === 'process-comment' || command === 'process-review-comment') && 
-      process.env.COMMENT_BODY && 
-      process.env.COMMENT_BODY.includes('bot:revert')) {
-    
-    console.log('Revert directive detected, executing immediate git revert');
-    
-    // Execute revert operation directly
-    const gitClient = new GitClient();
-    await gitClient.revertHead();
-    
-    return { success: true, message: 'Revert operation completed' };
-  }
-
   if (command === 'process-issue') {
     const issueNumber = prNumber;
 
@@ -114,9 +104,14 @@ export async function runHandler(command, deps = {}) {
 
   } else if (command === 'process-pr') {
     return queue.enqueue(command, { owner, repo, prNumber });
+  } else if (command === 'process-revert') {
+    const commentId = process.env.COMMENT_ID;
+    const commentBody = process.env.COMMENT_BODY;
+
+    return queue.enqueue(command, { owner, repo, prNumber, commentId, commentBody });
   } else {
     console.error(
-      'Invalid command. Use: process-pr, process-comment, process-issue, or process-review-comment'
+      'Invalid command. Use: process-pr, process-comment, process-issue, process-review-comment, or process-revert'
     );
     process.exit(1);
   }

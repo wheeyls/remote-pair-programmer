@@ -82,37 +82,6 @@ class GitClient {
   }
 
   /**
-   * Revert the HEAD commit and push the revert
-   * @returns {Promise<void>}
-   */
-  async revertHead() {
-    try {
-      // Configure git user for the revert commit
-      this.configureUser(
-        'GitHub AI Actions',
-        'github-actions[bot]@users.noreply.github.com'
-      );
-      
-      console.log('Reverting the most recent commit...');
-      
-      // Get the current branch name
-      const currentBranch = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
-      
-      // Create the revert commit
-      execSync('git revert HEAD --no-edit');
-      
-      // Push the revert commit
-      console.log(`Pushing revert commit to ${currentBranch}...`);
-      execSync(`git push origin ${currentBranch}`);
-      
-      console.log('Revert operation completed successfully');
-    } catch (error) {
-      console.error('Error during revert operation:', error.message);
-      throw error;
-    }
-  }
-
-  /**
    * Get authenticated URL for git operations
    * @param {string} repoUrl - Repository URL
    * @param {string} token - GitHub token

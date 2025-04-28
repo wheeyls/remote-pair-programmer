@@ -1,6 +1,7 @@
 import { Octokit } from '@octokit/rest';
 import processRequest from '../utils/processRequest.js';
 import handleError from '../utils/errorHandler.js';
+import processRevert from './processRevert.js';
 
 // Initialize GitHub API client
 const octokit = new Octokit({
@@ -14,6 +15,12 @@ async function processComment(aiClient, triggerPhrase, payload) {
   const { commentId, prNumber, owner, repo, commentBody } = payload;
 
   try {
+    // Check if this is a revert request
+    if (commentBody.trim() === `${triggerPhrase} bot:revert`) {
+      console.log('Detected revert request, calling process-revert handler directly');
+      return processRevert(aiClient, triggerPhrase, { owner, repo, prNumber, commentId, commentBody });
+    }
+
     // Get PR details to provide context
     const { data: pullRequest } = await octokit.pulls.get({
       owner,
