@@ -21,7 +21,7 @@ async function processIssueComment(aiClient, triggerPhrase, payload) {
       repo,
       comment_id: commentId,
     });
-    
+
     const commentBody = comment.body;
 
     // Check if this comment contains the trigger phrase
@@ -45,8 +45,8 @@ async function processIssueComment(aiClient, triggerPhrase, payload) {
       context: {
         owner,
         repo,
-        issueNumber,
         issue,
+        prNumber: issueNumber,
       },
       octokit,
     });
@@ -56,7 +56,7 @@ async function processIssueComment(aiClient, triggerPhrase, payload) {
       octokit,
       owner,
       repo,
-      issueNumber
+      issueNumber,
     });
   }
 }
