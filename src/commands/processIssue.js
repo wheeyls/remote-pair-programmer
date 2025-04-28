@@ -47,7 +47,7 @@ async function processIssue(aiClient, triggerPhrase, payload) {
 
     // Create a new branch for the changes
     const baseBranch = 'main'; // Assuming main is the default branch
-    const newBranch = `ai-changes-issue-${issueNumber}`;
+    const newBranch = `ai-bot/ai-changes-issue-${issueNumber}`;
 
     // Get the SHA of the latest commit on the base branch
     const { data: refData } = await octokit.git.getRef({
