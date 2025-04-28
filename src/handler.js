@@ -1,5 +1,6 @@
 import { AIClient } from './aiClient.js';
 import { createQueue } from './utils/queueFactory.js';
+import GitClient from './utils/gitClient.js';
 
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
@@ -81,6 +82,20 @@ export async function runHandler(command, deps = {}) {
   const owner = process.env.REPO_OWNER;
   const repo = process.env.REPO_NAME;
   const prNumber = process.env.PR_NUMBER;
+
+  // Check for revert directive in comment body
+  if ((command === 'process-comment' || command === 'process-review-comment') && 
+      process.env.COMMENT_BODY && 
+      process.env.COMMENT_BODY.includes('bot:revert')) {
+    
+    console.log('Revert directive detected, executing immediate git revert');
+    
+    // Execute revert operation directly
+    const gitClient = new GitClient();
+    await gitClient.revertHead();
+    
+    return { success: true, message: 'Revert operation completed' };
+  }
 
   if (command === 'process-issue') {
     const issueNumber = prNumber;
