@@ -82,6 +82,27 @@ class GitClient {
   }
 
   /**
+   * Revert the last commit
+   * @returns {string} The reverted commit message
+   */
+  revertLastCommit() {
+    // Configure user before reverting
+    this.configureUser(
+      'GitHub AI Actions',
+      'github-actions[bot]@users.noreply.github.com'
+    );
+    
+    // Get the last commit message for the revert commit message
+    const lastCommitMsg = execSync('git log -1 --pretty=%B').toString().trim();
+    
+    // Revert the last commit
+    console.log('Reverting the last commit...');
+    execSync('git revert HEAD --no-edit');
+    
+    return lastCommitMsg;
+  }
+
+  /**
    * Get authenticated URL for git operations
    * @param {string} repoUrl - Repository URL
    * @param {string} token - GitHub token

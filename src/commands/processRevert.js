@@ -51,12 +51,8 @@ async function processRevert(aiClient, triggerPhrase, payload) {
       // Clone the repository
       git.clone(repoUrl, branchName);
       
-      // Get the last commit message for the revert commit message
-      const lastCommitMsg = execSync('git log -1 --pretty=%B').toString().trim();
-      
-      // Revert the last commit
-      console.log('Reverting the last commit...');
-      execSync('git revert HEAD --no-edit');
+      // Revert the last commit using the GitClient
+      const lastCommitMsg = git.revertLastCommit();
       
       // Push the changes
       git.push(repoUrl, branchName);
