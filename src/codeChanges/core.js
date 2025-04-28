@@ -160,12 +160,11 @@ ${Object.entries(fileContents)
     let commitMessage = await getExplanation(explanation, aiClient);
 
     // Sanitize the commit message for command line safety
-    commitMessage = sanitizeForShell(
-      `${commitMessage}\n\nRequested by comment on PR #${prNumber}`
-    );
+    commitMessage = sanitizeForShell(commitMessage);
 
     git.addAll();
-    git.commit(commitMessage);
+    git.commit(`${commitMessage}\n\nRequested by comment on PR #${prNumber}`);
+
     git.push(repoUrl, branch);
 
     // Return to original directory and clean up
