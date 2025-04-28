@@ -156,8 +156,8 @@ describe('WebServiceQueue', () => {
     // Mock a job in the queue
     const mockJob = {
       id: 'job-123',
-      name: 'test-command',
-      body: { data: 'test-data' },
+      commandType: 'test-command',
+      payload: { data: 'test-data' },
       addedAt: new Date().toISOString()
     };
     
@@ -232,8 +232,8 @@ describe('WebServiceQueue', () => {
     // Mock a job in the queue
     const mockJob = {
       id: 'job-123',
-      name: 'test-command',
-      body: { data: 'test-data' },
+      commandType: 'test-command',
+      payload: { data: 'test-data' },
       addedAt: new Date().toISOString()
     };
     
