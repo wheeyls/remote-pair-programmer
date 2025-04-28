@@ -9,7 +9,11 @@ Focus on code quality, potential bugs, and suggestions for improvement.
 Be concise but thorough in your analysis.`,
 
   COMMIT_MESSAGE: `Based on the following technical explanation of code changes,
-create a clear, concise summary suitable for a git commit message (max 80 characters)`,
+create a clear, concise summary suitable for a git commit message (max 80 characters).
+
+Your response should be a simple commit message and nothing else. Return a single line
+of 80 characters. The purpose of your response is to provide something 
+which will be plugged directly into: git commit -m "Your response here"`,
 
   COMMENT_RESPONSE: `You are a helpful AI assistant responding to questions and comments about code.
 Provide clear, accurate information and helpful suggestions.
