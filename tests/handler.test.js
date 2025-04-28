@@ -66,6 +66,9 @@ describe('Handler', () => {
   });
   
   test('processes comment command correctly', async () => {
+    // Set up environment for PR comment
+    process.env.COMMENT_ID = '12345';
+    
     // Run the handler with the comment command and our mocks
     await runHandler('process-comment', {
       aiClient: mockAIClient,
@@ -73,7 +76,31 @@ describe('Handler', () => {
     });
     
     // Check if the correct command was enqueued
-    expect(mockQueue.enqueue).toHaveBeenCalledWith('process-comment', {});
+    expect(mockQueue.enqueue).toHaveBeenCalledWith('process-comment', {
+      owner: process.env.REPO_OWNER,
+      repo: process.env.REPO_NAME,
+      prNumber: process.env.PR_NUMBER,
+      commentId: '12345'
+    });
+  });
+  
+  test('processes issue comment command correctly', async () => {
+    // Set up environment for issue comment
+    process.env.COMMENT_ID = '12345';
+    
+    // Run the handler with the issue comment command and our mocks
+    await runHandler('process-issue-comment', {
+      aiClient: mockAIClient,
+      queue: mockQueue
+    });
+    
+    // Check if the correct command was enqueued
+    expect(mockQueue.enqueue).toHaveBeenCalledWith('process-issue-comment', {
+      owner: process.env.REPO_OWNER,
+      repo: process.env.REPO_NAME,
+      issueNumber: process.env.PR_NUMBER,
+      commentId: '12345'
+    });
   });
   
   test('processes issue command correctly', async () => {
@@ -84,7 +111,11 @@ describe('Handler', () => {
     });
     
     // Check if the correct command was enqueued
-    expect(mockQueue.enqueue).toHaveBeenCalledWith('process-issue', {});
+    expect(mockQueue.enqueue).toHaveBeenCalledWith('process-issue', {
+      owner: process.env.REPO_OWNER,
+      repo: process.env.REPO_NAME,
+      issueNumber: process.env.PR_NUMBER
+    });
   });
   
   test('processes review comment command correctly', async () => {
