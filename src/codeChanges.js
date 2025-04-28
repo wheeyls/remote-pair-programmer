@@ -262,13 +262,44 @@ function extractSearchReplaceBlocks(response) {
 function extractExplanation(response) {
   // Look for explanation at the beginning of the response, before any search/replace blocks
   const explanationRegex = /^([\s\S]*?)(?:[^\n]+\n```[^\n]*\n<<<<<<< SEARCH)/;
-  const match = response.match(explanationRegex).split(/\n/)[0] || '';
+  const match = response.match(explanationRegex);
 
   if (match && match[1]) {
-    return match[1].trim().substring(0, 80);
+    return match[1].trim();
   }
 
   return '';
+}
+
+/**
+ * Generate a refined explanation using AI
+ * @param {string} extractedExplanation - The raw explanation extracted from code changes
+ * @param {Object} aiClient - AIClient instance
+ * @returns {Promise<string>} - Refined explanation
+ */
+async function generateRefinedExplanation(extractedExplanation, aiClient) {
+  if (!extractedExplanation) {
+    return 'Code changes requested';
+  }
+
+  const prompt = `Based on the following technical explanation of code changes, create a clear, concise summary suitable for a git commit message (max 80 characters):
+
+${extractedExplanation}`;
+
+  try {
+    const refinedExplanation = await aiClient.generateCompletion({
+      prompt,
+      context: '',
+      modelStrength: 'weak', // Use weak model for simple text generation
+      temperature: 0.7
+    });
+
+    // Trim and limit length if needed
+    return refinedExplanation.trim().substring(0, 80);
+  } catch (error) {
+    console.warn('Error generating refined explanation:', error.message);
+    return extractedExplanation.substring(0, 80);
+  }
 }
 
 /**
