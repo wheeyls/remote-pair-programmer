@@ -83,7 +83,12 @@ runs:
         elif [ "${{ github.event_name }}" == "issues" ]; then
           node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-issue
         elif [ "${{ github.event_name }}" == "issue_comment" ]; then
-          node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-issue-comment
+          # Check if the issue is actually a PR
+          if [ -n "${{ github.event.issue.pull_request }}" ]; then
+            node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-comment
+          else
+            node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-issue-comment
+          fi
         elif [ "${{ github.event_name }}" == "pull_request_review_comment" ]; then
           node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-review-comment
         else
