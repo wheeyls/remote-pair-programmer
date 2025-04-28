@@ -17,17 +17,20 @@ class GitClient {
    * @param {string} repoUrl - Repository URL
    * @param {string} branch - Branch name
    * @param {string} destination - Destination path (defaults to current directory)
+   * @param {Object} options - Additional options
+   * @param {number} options.depth - Depth of history to clone (defaults to 1)
    */
-  clone(repoUrl, branch, destination = '.') {
+  clone(repoUrl, branch, destination = '.', options = {}) {
+    const { depth = 1 } = options;
     const tokenUrl = this._getAuthenticatedUrl(repoUrl, this.token);
     console.log(
       `Cloning repository ${repoUrl.replace(
         /\/\/.*@/,
         '//***@'
-      )} branch ${branch}...`
+      )} branch ${branch} with depth ${depth}...`
     );
     execSync(
-      `git clone --depth 1 --branch ${branch} "${tokenUrl}" ${destination}`
+      `git clone --depth ${depth} --branch ${branch} "${tokenUrl}" ${destination}`
     );
   }
 
@@ -83,9 +86,13 @@ class GitClient {
 
   /**
    * Revert the last commit
+   * @param {Object} options - Additional options
+   * @param {boolean} options.fetchMoreHistory - Whether to fetch more history if needed (defaults to false)
    * @returns {string} The reverted commit message
    */
-  revertLastCommit() {
+  revertLastCommit(options = {}) {
+    const { fetchMoreHistory = false } = options;
+    
     // Configure user before reverting
     this.configureUser(
       'GitHub AI Actions',
@@ -94,6 +101,12 @@ class GitClient {
     
     // Get the last commit message for the revert commit message
     const lastCommitMsg = execSync('git log -1 --pretty=%B').toString().trim();
+    
+    // If fetchMoreHistory is true, deepen the clone to ensure we have enough history
+    if (fetchMoreHistory) {
+      console.log('Fetching more history to support revert...');
+      execSync('git fetch --deepen=1');
+    }
     
     // Revert the last commit
     console.log('Reverting the last commit...');

@@ -48,11 +48,11 @@ async function processRevert(aiClient, triggerPhrase, payload) {
       // Initialize Git client
       const git = new GitClient(process.env.GITHUB_TOKEN);
 
-      // Clone the repository
-      git.clone(repoUrl, branchName);
+      // Clone the repository with depth 2 to ensure we have enough history for the revert
+      git.clone(repoUrl, branchName, '.', { depth: 2 });
       
       // Revert the last commit using the GitClient
-      const lastCommitMsg = git.revertLastCommit();
+      const lastCommitMsg = git.revertLastCommit({ fetchMoreHistory: true });
       
       // Push the changes
       git.push(repoUrl, branchName);
