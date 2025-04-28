@@ -25,8 +25,9 @@ async function handleError({
   isReviewComment = false
 }) {
   console.error('Error processing request:', error);
+  const safeErrorMessage = protectSensitiveData(error.message);
 
-  const errorMessage = `❌ I encountered an error while processing your request:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or rephrase your request.`;
+  const errorMessage = `❌ I encountered an error while processing your request:\n\`\`\`\n${safeErrorMessage}\n\`\`\`\n\nPlease try again or rephrase your request.`;
   
   try {
     await addIssueComment({
@@ -43,6 +44,12 @@ async function handleError({
     // If commenting fails, log the error but don't throw
     console.error('Error posting error comment:', commentError);
   }
+}
+
+function protectSensitiveData(message) {
+  // Example: Mask sensitive data in the error message
+  const sensitiveDataPattern = /https:\/\/(.+)@/g;
+  return message.replace(sensitiveDataPattern, '***');
 }
 
 export default handleError;
