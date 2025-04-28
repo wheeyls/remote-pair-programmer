@@ -47,8 +47,6 @@ async function processIssueComment(aiClient, triggerPhrase, payload) {
         repo,
         issueNumber,
         issue,
-        branchExists,
-        branchName,
       },
       octokit,
     });
@@ -58,8 +56,7 @@ async function processIssueComment(aiClient, triggerPhrase, payload) {
       octokit,
       owner,
       repo,
-      issueNumber,
-      commentBody
+      issueNumber
     });
   }
 }

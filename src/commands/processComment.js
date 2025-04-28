@@ -67,8 +67,7 @@ async function processComment(aiClient, triggerPhrase, payload) {
       octokit,
       owner,
       repo,
-      issueNumber: prNumber,
-      commentBody
+      issueNumber: prNumber
     });
   }
 }
