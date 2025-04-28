@@ -11,7 +11,7 @@ const octokit = new Octokit({
  * Process a review comment on a specific line in a GitHub PR
  */
 async function processReviewComment(aiClient, triggerPhrase, payload) {
-  const { commentId, prNumber, owner, repo, commentBody } = payload;
+  const { commentId, prNumber, owner, repo } = payload;
 
   try {
     // Get PR details to provide context
@@ -51,7 +51,7 @@ async function processReviewComment(aiClient, triggerPhrase, payload) {
     await processRequest({
       aiClient,
       triggerPhrase,
-      requestText: commentBody,
+      requestText: reviewComment.body,
       context: {
         owner,
         repo,

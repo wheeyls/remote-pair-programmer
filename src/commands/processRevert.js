@@ -16,9 +16,18 @@ const octokit = new Octokit({
  * Process a revert request on a GitHub PR
  */
 async function processRevert(aiClient, triggerPhrase, payload) {
-  const { prNumber, owner, repo, commentBody } = payload;
+  const { prNumber, owner, repo, commentId } = payload;
 
   try {
+    // Get the comment text from GitHub API
+    const { data: comment } = await octokit.issues.getComment({
+      owner,
+      repo,
+      comment_id: commentId,
+    });
+    
+    const commentBody = comment.body;
+    
     // Check if the comment is a revert request
     const revertTrigger = `${triggerPhrase} bot:revert`;
     if (commentBody.trim() !== revertTrigger) {

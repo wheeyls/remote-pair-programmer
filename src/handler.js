@@ -93,22 +93,19 @@ export async function runHandler(command, deps = {}) {
     return queue.enqueue(command, { owner, repo, issueNumber });
   } else if (command === 'process-comment') {
     const commentId = process.env.COMMENT_ID;
-    const commentBody = process.env.COMMENT_BODY;
 
-    return queue.enqueue(command, { owner, repo, prNumber, commentId, commentBody });
+    return queue.enqueue(command, { owner, repo, prNumber, commentId });
   } else if (command === 'process-review-comment') {
     const commentId = process.env.COMMENT_ID;
-    const commentBody = process.env.COMMENT_BODY;
 
-    return queue.enqueue(command, { owner, repo, prNumber, commentId, commentBody });
+    return queue.enqueue(command, { owner, repo, prNumber, commentId });
 
   } else if (command === 'process-pr') {
     return queue.enqueue(command, { owner, repo, prNumber });
   } else if (command === 'process-revert') {
     const commentId = process.env.COMMENT_ID;
-    const commentBody = process.env.COMMENT_BODY;
 
-    return queue.enqueue(command, { owner, repo, prNumber, commentId, commentBody });
+    return queue.enqueue(command, { owner, repo, prNumber, commentId });
   } else {
     console.error(
       'Invalid command. Use: process-pr, process-comment, process-issue, process-review-comment, or process-revert'
