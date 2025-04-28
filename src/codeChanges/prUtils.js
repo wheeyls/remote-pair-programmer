@@ -8,13 +8,34 @@
  */
 async function isPullRequest(octokit, owner, repo, number) {
   try {
-    await octokit.pulls.get({
+    // Make sure we have a valid number
+    if (!number) {
+      return false;
+    }
+    
+    // First, try to get the issue to check if it exists
+    const { data } = await octokit.issues.get({
       owner,
       repo,
-      pull_number: number,
+      issue_number: number,
     });
-    return true;
+    
+    // Handle the response based on its type
+    let issue;
+    if (Array.isArray(data)) {
+      if (data.length === 0) {
+        return false;
+      }
+      issue = data[0];
+    } else {
+      issue = data;
+    }
+    
+    // Check for the pull_request property which indicates it's a PR
+    return issue.pull_request !== undefined;
   } catch (error) {
+    console.error(`Error checking if #${number} is a PR:`, error);
+    // If we can't get the issue at all, return false
     return false;
   }
 }
