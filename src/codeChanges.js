@@ -109,7 +109,8 @@ ${Object.entries(fileContents).map(([filename, content]) =>
 ).join('\n')}`;
 
     // 5. Parse the AI response to extract search/replace blocks using requestCodeChanges
-    const searchReplaceBlocks = await requestCodeChanges(contextContent, aiClient);
+    const changes = await requestCodeChanges(contextContent, aiClient);
+    const searchReplaceBlocks = changes.changes;
 
     if (searchReplaceBlocks.length === 0) {
       console.log("No search / replace in:" + aiResponse);
@@ -118,7 +119,7 @@ ${Object.entries(fileContents).map(([filename, content]) =>
 
     // 6. Apply the search/replace blocks to the files with retry logic
     const changedFiles = new Set();
-    const explanation = extractExplanation(aiResponse);
+    const explanation = changes.explanation;
     
     // Apply blocks with retry logic
     let currentBlocks = searchReplaceBlocks;
@@ -224,7 +225,10 @@ async function requestCodeChanges(context, aiClient, additionalContext = '') {
     temperature: 0.2
   });
   
-  return extractSearchReplaceBlocks(aiResponse);
+  return {
+    changes: extractSearchReplaceBlocks(aiResponse),
+    explanation: extractExplanation(aiResponse)
+  };
 }
 
 /**
@@ -258,10 +262,10 @@ function extractSearchReplaceBlocks(response) {
 function extractExplanation(response) {
   // Look for explanation at the beginning of the response, before any search/replace blocks
   const explanationRegex = /^([\s\S]*?)(?:[^\n]+\n```[^\n]*\n<<<<<<< SEARCH)/;
-  const match = response.match(explanationRegex);
+  const match = response.match(explanationRegex).split(/\n/)[0] || '';
 
   if (match && match[1]) {
-    return match[1].trim();
+    return match[1].trim().substring(0, 80);
   }
 
   return '';
@@ -362,7 +366,7 @@ ${fb.block.replace}
 Please provide corrected search/replace blocks for these files.`;
 
     // Get a new AI response for the failed blocks, passing the additional context
-    const retryBlocks = await requestCodeChanges(retryRequestText, aiClient, contextContent);
+    const retryBlocks = await requestCodeChanges(retryRequestText, aiClient, contextContent).changes;
     
     if (retryBlocks.length === 0) {
       console.warn("No valid search/replace blocks found in retry response");
