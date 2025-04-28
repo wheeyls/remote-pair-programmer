@@ -45,7 +45,7 @@ export class WebServiceQueue {
    * @returns {Promise<string>} - Job ID
    */
   async enqueue(commandType, payload) {
-    console.log(`Enqueueing command: ${commandType}`, payload);
+    console.log(`Enqueueing command: ${commandType}`);
 
     const job = {
       name: commandType,
@@ -135,7 +135,6 @@ export class WebServiceQueue {
     try {
       const job = jobData;
       console.log(`Processing job ${job.id} of type ${job.name}`);
-      console.log(`Job payload:`, JSON.stringify(job.body, null, 2));
 
       const result = await this.processCommand(job.name, job.body);
 

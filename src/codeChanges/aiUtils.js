@@ -32,6 +32,7 @@ async function requestCodeChanges(context, aiClient, additionalContext = '') {
  */
 function extractSearchReplaceBlocks(response) {
   console.log('Search replace blocks in response: \n' + response);
+  
   const blocks = [];
   const regex =
     /([^\n]+)\n```[^\n]*\n<<<<<<< SEARCH\n([\s\S]*?)=======\n([\s\S]*?)>>>>>>> REPLACE\n```/g;

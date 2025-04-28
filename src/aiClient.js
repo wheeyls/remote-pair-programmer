@@ -80,19 +80,11 @@ export class AIClient {
       requestOptions.response_format = responseFormat;
     }
 
-    // Log the inputs for debugging
+    // Log minimal request info for monitoring
     console.log('AI Request:', {
       provider: this.provider,
       model,
-      modelStrength,
-      temperature,
-      responseFormat: responseFormat ? JSON.stringify(responseFormat) : 'none',
-      promptLength: prompt.length,
-      contextType: typeof context,
-      contextLength:
-        typeof context === 'string'
-          ? context.length
-          : JSON.stringify(context).length
+      modelStrength
     });
 
     try {

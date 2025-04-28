@@ -23,12 +23,7 @@ class GitClient {
   clone(repoUrl, branch, destination = '.', options = {}) {
     const { depth = 1 } = options;
     const tokenUrl = this._getAuthenticatedUrl(repoUrl, this.token);
-    console.log(
-      `Cloning repository ${repoUrl.replace(
-        /\/\/.*@/,
-        '//***@'
-      )} branch ${branch} with depth ${depth}...`
-    );
+    console.log(`Cloning repository branch ${branch} with depth ${depth}...`);
     execSync(
       `git clone --depth ${depth} --branch ${branch} "${tokenUrl}" ${destination}`
     );

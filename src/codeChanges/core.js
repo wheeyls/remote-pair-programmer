@@ -31,7 +31,6 @@ async function modifyCode({
   git,
   utils = {},
 }) {
-  console.log('MODIFY CODE IS ENTERED');
   // Create a temporary directory for the repository
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'github-ai-'));
   const originalDir = process.cwd();
@@ -46,21 +45,8 @@ async function modifyCode({
   } = utils;
 
   try {
-    console.log('******************************');
     process.chdir(tempDir);
     console.log(`Created temporary directory: ${tempDir}`);
-
-    // Debug log for GitHub token (masked)
-    console.log(
-      `GitHub token available: ${process.env.GITHUB_TOKEN ? 'Yes' : 'No'}`
-    );
-    console.log('******************************');
-    if (process.env.GITHUB_TOKEN) {
-      console.log(`Token length: ${process.env.GITHUB_TOKEN.length}`);
-      console.log(
-        `Token prefix: ${process.env.GITHUB_TOKEN.substring(0, 4)}...`
-      );
-    }
 
     // Initialize GitHub API client
     octokit =
