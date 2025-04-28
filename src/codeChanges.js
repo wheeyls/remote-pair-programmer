@@ -108,62 +108,21 @@ ${Object.entries(fileContents).map(([filename, content]) =>
   `--- ${filename} ---\n${content}\n`
 ).join('\n')}`;
 
-    const aiResponse = await aiClient.generateCompletion({
-      prompt: PROMPTS.CODE_MODIFICATION,
-      context: contextContent,
-      modelStrength: 'strong', // Use strong model for code modifications
-      temperature: 0.2
-    });
-
-    // 5. Parse the AI response to extract search/replace blocks
-    const searchReplaceBlocks = extractSearchReplaceBlocks(aiResponse);
+    // 5. Parse the AI response to extract search/replace blocks using requestCodeChanges
+    const searchReplaceBlocks = await requestCodeChanges(contextContent, aiClient);
 
     if (searchReplaceBlocks.length === 0) {
       console.log("No search / replace in:" + aiResponse);
       throw new Error('No valid search/replace blocks found in AI response');
     }
 
-    // 6. Apply the search/replace blocks to the files
+    // 6. Apply the search/replace blocks to the files with retry logic
     const changedFiles = new Set();
     const explanation = extractExplanation(aiResponse);
-
-    for (const block of searchReplaceBlocks) {
-      const { filename, search, replace } = block;
-      changedFiles.add(filename);
-
-      // Check if file exists
-      if (!fs.existsSync(filename) && search.trim() !== '') {
-        console.warn(`File ${filename} does not exist but has non-empty search content`);
-        continue;
-      }
-
-      // For new files with empty search section
-      if (search.trim() === '') {
-        // Ensure directory exists
-        const dir = path.dirname(filename);
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
-        }
-
-        // Create new file with replace content
-        fs.writeFileSync(filename, replace, 'utf8');
-        continue;
-      }
-
-      // For existing files
-      let content = fs.readFileSync(filename, 'utf8');
-
-      // Replace the first occurrence of the search text with the replace text
-      if (!content.includes(search)) {
-        console.warn(`Search text not found in ${filename}`);
-        continue;
-      }
-
-      content = content.replace(search, replace);
-
-      // Write the modified content back to the file
-      fs.writeFileSync(filename, content, 'utf8');
-    }
+    
+    // Apply blocks with retry logic
+    let currentBlocks = searchReplaceBlocks;
+    currentBlocks = await applyPatches(currentBlocks, changedFiles, aiClient);
 
     // 7. Commit and push the changes
     let commitMessage = `AI: ${explanation || 'Code changes requested'}
@@ -249,6 +208,26 @@ function sanitizeForShell(str) {
 }
 
 /**
+ * Request code changes from AI and extract search/replace blocks
+ * @param {string} context - The context to send to the AI
+ * @param {Object} aiClient - AIClient instance
+ * @param {string} [additionalContext] - Additional context for retry attempts
+ * @returns {Promise<Array<Object>>} - Array of search/replace blocks
+ */
+async function requestCodeChanges(context, aiClient, additionalContext = '') {
+  const contextToUse = additionalContext ? `${context}\n\nAdditional context:\n${additionalContext}` : context;
+  
+  const aiResponse = await aiClient.generateCompletion({
+    prompt: PROMPTS.CODE_MODIFICATION,
+    context: contextToUse,
+    modelStrength: 'strong', // Use strong model for code modifications
+    temperature: 0.2
+  });
+  
+  return extractSearchReplaceBlocks(aiResponse);
+}
+
+/**
  * Extract search/replace blocks from AI response
  * @param {string} response - The AI response text
  * @returns {Array<Object>} - Array of search/replace blocks
@@ -288,6 +267,116 @@ function extractExplanation(response) {
   return '';
 }
 
+/**
+ * Apply search/replace patches to files with retry logic
+ * @param {Array<Object>} blocks - Search/replace blocks to apply
+ * @param {Set<string>} changedFiles - Set to track changed files
+ * @param {Object} aiClient - AIClient instance
+ * @returns {Array<Object>} - Remaining blocks that couldn't be applied
+ */
+async function applyPatches(blocks, changedFiles, aiClient) {
+  let currentBlocks = blocks;
+  let maxRetries = 3;
+  let retryCount = 0;
+  
+  while (retryCount < maxRetries) {
+    const failedBlocks = [];
+    
+    // Try to apply each block
+    for (const block of currentBlocks) {
+      try {
+        const { filename, search, replace } = block;
+        changedFiles.add(filename);
+
+        // Check if file exists
+        if (!fs.existsSync(filename) && search.trim() !== '') {
+          throw new Error(`File ${filename} does not exist but has non-empty search content`);
+        }
+
+        // For new files with empty search section
+        if (search.trim() === '') {
+          // Ensure directory exists
+          const dir = path.dirname(filename);
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+
+          // Create new file with replace content
+          fs.writeFileSync(filename, replace, 'utf8');
+          continue;
+        }
+
+        // For existing files
+        let content = fs.readFileSync(filename, 'utf8');
+
+        // Replace the first occurrence of the search text with the replace text
+        if (!content.includes(search)) {
+          throw new Error(`Search text not found in ${filename}`);
+        }
+
+        content = content.replace(search, replace);
+
+        // Write the modified content back to the file
+        fs.writeFileSync(filename, content, 'utf8');
+      } catch (blockError) {
+        console.warn(`Error applying block for ${block.filename}:`, blockError.message);
+        failedBlocks.push({
+          block,
+          error: blockError.message
+        });
+      }
+    }
+    
+    // If no failures, we're done
+    if (failedBlocks.length === 0) {
+      break;
+    }
+    
+    // If we've reached max retries, log and exit
+    if (retryCount >= maxRetries - 1) {
+      console.warn(`Failed to apply ${failedBlocks.length} blocks after ${maxRetries} retries`);
+      break;
+    }
+    
+    // Otherwise, retry the failed blocks
+    retryCount++;
+    console.log(`Retry attempt ${retryCount} for ${failedBlocks.length} failed blocks`);
+    
+    // Create a new request for the AI to fix the failed blocks
+    const retryRequestText = `
+Some of the search/replace blocks failed to apply. Please provide corrected versions for these blocks:
+
+${failedBlocks.map(fb => 
+`File: ${fb.block.filename}
+Error: ${fb.error}
+Original search:
+\`\`\`
+${fb.block.search}
+\`\`\`
+Original replace:
+\`\`\`
+${fb.block.replace}
+\`\`\`
+`).join('\n')}
+
+Please provide corrected search/replace blocks for these files.`;
+
+    // Get a new AI response for the failed blocks, passing the additional context
+    const retryBlocks = await requestCodeChanges(retryRequestText, aiClient, contextContent);
+    
+    if (retryBlocks.length === 0) {
+      console.warn("No valid search/replace blocks found in retry response");
+      break;
+    }
+    
+    // Update current blocks to only the retry blocks
+    currentBlocks = retryBlocks;
+  }
+  
+  return currentBlocks;
+}
+
 export {
-  modifyCode
+  modifyCode,
+  requestCodeChanges
 };
