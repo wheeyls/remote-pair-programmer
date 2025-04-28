@@ -2,6 +2,7 @@ import { Octokit } from '@octokit/rest';
 import { execSync } from 'child_process';
 import { modifyCode } from '../codeChanges.js';
 import handleError from '../utils/errorHandler.js';
+import addIssueComment from '../utils/commentUtils.js';
 
 // Initialize GitHub API client
 const octokit = new Octokit({
@@ -36,11 +37,12 @@ async function processIssue(aiClient, triggerPhrase, payload) {
     }
 
     // Comment that we're processing the request
-    await octokit.issues.createComment({
+    await addIssueComment({
+      octokit,
       owner,
       repo,
       issue_number: issueNumber,
-      body: `I'm processing your request to make code changes. I'll convert this issue into a PR shortly.\n\nbot:ignore`,
+      body: `I'm processing your request to make code changes. I'll convert this issue into a PR shortly.`
     });
 
     // Create a new branch for the changes
@@ -83,11 +85,12 @@ async function processIssue(aiClient, triggerPhrase, payload) {
     });
 
     if (!result.success) {
-      await octokit.issues.createComment({
+      await addIssueComment({
+        octokit,
         owner,
         repo,
         issue_number: issueNumber,
-        body: `❌ I encountered an error while trying to make the requested changes:\n\`\`\`\n${result.error}\n\`\`\`\n\nPlease provide more details or try a different request.\n\nbot:ignore`,
+        body: `❌ I encountered an error while trying to make the requested changes:\n\`\`\`\n${result.error}\n\`\`\`\n\nPlease provide more details or try a different request.`
       });
       return;
     }
@@ -96,7 +99,8 @@ async function processIssue(aiClient, triggerPhrase, payload) {
     // This avoids the GitHub Actions permission limitation for creating PRs
 
     // Comment on the issue with information about the changes and branch
-    await octokit.issues.createComment({
+    await addIssueComment({
+      octokit,
       owner,
       repo,
       issue_number: issueNumber,
@@ -106,7 +110,7 @@ async function processIssue(aiClient, triggerPhrase, payload) {
         .map((f) => `- \`${f}\``)
         .join(
           '\n'
-        )}\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${owner}/${repo}/compare/${baseBranch}...${newBranch}?expand=1\n\nbot:ignore`,
+        )}\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${owner}/${repo}/compare/${baseBranch}...${newBranch}?expand=1`
     });
   } catch (error) {
     await handleError({

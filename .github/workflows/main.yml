@@ -20,43 +20,15 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ (github.event_name == 'pull_request') || (github.event_name == 'issue_comment' && github.event.issue.pull_request) || (github.event_name == 'pull_request_review_comment') || (github.event_name == 'issues') }}
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.ref }}
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
       - name: Run AI Agent
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-          REPO_OWNER: ${{ github.repository_owner }}
-          REPO_NAME: ${{ github.event.repository.name }}
-          COMMENT_ID: ${{ github.event.comment.id || '' }}
-          COMMENT_BODY: ${{ github.event.comment.body || '' }}
-          EVENT_TYPE: ${{ github.event_name }}
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Queue configuration
-          QUEUE_SERVICE_URL: ${{ secrets.QUEUE_SERVICE_URL }}
-          QUEUE_AUTH_TOKEN: ${{ secrets.QUEUE_AUTH_TOKEN }}
-          # AI configuration
-          AI_MODEL: 'claude-3-7-sonnet-latest'
-          STRONG_AI_MODEL: 'claude-3-7-sonnet-latest'
-          WEAK_AI_MODEL: 'claude-3-5-haiku-latest'
-          TRIGGER_PHRASE: 'Hey Monty'
-          AI_PROVIDER: 'anthropic'
-        run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-pr
-          elif [ "${{ github.event_name }}" == "issues" ]; then
-            node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-issue
-          elif [ "${{ github.event_name }}" == "pull_request_review_comment" ]; then
-            node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-review-comment
-          else
-            node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-comment
-          fi
+        uses: wheeyls/github-ai-action@stable
+        with:
+          ai-provider: 'anthropic'
+          queue-service-url: ${{ secrets.QUEUE_SERVICE_URL }}
+          queue-auth-token: ${{ secrets.QUEUE_AUTH_TOKEN }}
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: 'claude-3-7-sonnet-latest'
+          strong-model: 'claude-3-7-sonnet-latest'
+          weak-model: 'claude-3-5-haiku-latest'
+          trigger-phrase: 'Hey Monty'

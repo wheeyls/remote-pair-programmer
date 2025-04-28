@@ -1,6 +1,7 @@
 import { modifyCode } from '../codeChanges.js';
 import PROMPTS from '../prompts.js';
 import handleError from './errorHandler.js';
+import addIssueComment from './commentUtils.js';
 
 /**
  * Process a request from a PR or comment
@@ -19,7 +20,6 @@ async function processRequest(params) {
   const { aiClient, triggerPhrase, requestText, context, octokit } = params;
   const { owner, repo, prNumber } = context;
 
-  const aiSignature = '\n\nbot:ignore';
 
   // Check if this is a bot message or should be ignored
   if (requestText.includes('bot:ignore')) {
@@ -55,11 +55,13 @@ async function processRequest(params) {
       }
 
       // Post response as a reply
-      await octokit.issues.createComment({
+      await addIssueComment({
+        octokit,
         owner,
         repo,
         issue_number: prNumber,
-        body: `> ${requestText}\n\n${responseBody}`
+        body: responseBody,
+        quote_reply_to: requestText
       });
 
       return { success: true, isCodeMod: true, response: responseBody };
@@ -75,11 +77,12 @@ async function processRequest(params) {
       );
 
       // Post AI response as a reply
-      await octokit.issues.createComment({
+      await addIssueComment({
+        octokit,
         owner,
         repo,
         issue_number: prNumber,
-        body: aiResponse + aiSignature
+        body: aiResponse
       });
 
       return { success: true, isCodeMod: false, response: aiResponse };

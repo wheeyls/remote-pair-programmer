@@ -1,4 +1,5 @@
 import { Octokit } from '@octokit/rest';
+import addIssueComment from './commentUtils.js';
 
 /**
  * Shared error handler for GitHub API operations
@@ -25,41 +26,19 @@ async function handleError({
 }) {
   console.error('Error processing request:', error);
 
-  // Initialize Octokit if not provided
-  if (!octokit) {
-    octokit = new Octokit({
-      auth: process.env.GITHUB_TOKEN,
-    });
-  }
-
   const errorMessage = `❌ I encountered an error while processing your request:\n\`\`\`\n${error.message}\n\`\`\`\n\nPlease try again or rephrase your request.`;
   
-  // Add bot:ignore directive to prevent the bot from responding to its own messages
-  const messageWithIgnore = errorMessage + '\n\nbot:ignore';
-  
   try {
-    if (isReviewComment && commentId) {
-      // Reply to a review comment
-      await octokit.pulls.createReplyForReviewComment({
-        owner,
-        repo,
-        pull_number: issueNumber,
-        comment_id: commentId,
-        body: messageWithIgnore,
-      });
-    } else {
-      // Reply to a regular issue/PR comment
-      const body = commentBody 
-        ? `> ${commentBody}\n\n${messageWithIgnore}`
-        : messageWithIgnore;
-        
-      await octokit.issues.createComment({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        body: body,
-      });
-    }
+    await addIssueComment({
+      octokit,
+      type: isReviewComment ? 'pull' : 'issue',
+      owner,
+      repo,
+      issue_number: issueNumber,
+      comment_id: commentId,
+      body: errorMessage,
+      quote_reply_to: commentBody
+    });
   } catch (commentError) {
     // If commenting fails, log the error but don't throw
     console.error('Error posting error comment:', commentError);
