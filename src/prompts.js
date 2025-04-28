@@ -8,6 +8,9 @@ Provide constructive feedback and clear explanations.
 Focus on code quality, potential bugs, and suggestions for improvement.
 Be concise but thorough in your analysis.`,
 
+  COMMIT_MESSAGE: `Based on the following technical explanation of code changes,
+create a clear, concise summary suitable for a git commit message (max 80 characters)`,
+
   COMMENT_RESPONSE: `You are a helpful AI assistant responding to questions and comments about code.
 Provide clear, accurate information and helpful suggestions.
 If you're asked to explain code, break down the logic in an easy-to-understand way.

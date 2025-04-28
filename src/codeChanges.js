@@ -29,18 +29,22 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
     console.log(`Created temporary directory: ${tempDir}`);
 
     // Debug log for GitHub token (masked)
-    console.log(`GitHub token available: ${process.env.GITHUB_TOKEN ? 'Yes' : 'No'}`);
+    console.log(
+      `GitHub token available: ${process.env.GITHUB_TOKEN ? 'Yes' : 'No'}`
+    );
     console.log('******************************');
     if (process.env.GITHUB_TOKEN) {
       console.log(`Token length: ${process.env.GITHUB_TOKEN.length}`);
-      console.log(`Token prefix: ${process.env.GITHUB_TOKEN.substring(0, 4)}...`);
+      console.log(
+        `Token prefix: ${process.env.GITHUB_TOKEN.substring(0, 4)}...`
+      );
     }
 
     // Initialize GitHub API client
     const octokit = new Octokit({
-      auth: process.env.GITHUB_TOKEN
+      auth: process.env.GITHUB_TOKEN,
     });
-    
+
     // Initialize Git client with GitHub token
     const git = new GitClient(process.env.GITHUB_TOKEN);
 
@@ -56,13 +60,13 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
       const { data: pullRequest } = await octokit.pulls.get({
         owner,
         repo,
-        pull_number: prNumber
+        pull_number: prNumber,
       });
 
       const { data: prFiles } = await octokit.pulls.listFiles({
         owner,
         repo,
-        pull_number: prNumber
+        pull_number: prNumber,
       });
 
       files = prFiles;
@@ -75,7 +79,7 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
       // For issues, clone the default branch with minimal history
       const { data: repoData } = await octokit.repos.get({
         owner,
-        repo
+        repo,
       });
 
       branch = repoData.default_branch;
@@ -83,7 +87,7 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
 
       // Clone the repository and create a new branch for the issue
       git.clone(repoUrl, branch);
-      
+
       const newBranch = `ai-changes-issue-${prNumber}`;
       git.checkoutNewBranch(newBranch);
       branch = newBranch;
@@ -94,44 +98,49 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
 
     if (isPR && files.length > 0) {
       // If it's a PR, use the files from the PR
-      additionalFiles = files.filter(file => file.status !== 'removed').map(file => file.filename);
+      additionalFiles = files
+        .filter((file) => file.status !== 'removed')
+        .map((file) => file.filename);
     }
 
     // Process file context directives in the request text
-    const fileContents = processFileContext({ text: requestText, additionalFiles });
+    const fileContents = processFileContext({
+      text: requestText,
+      additionalFiles,
+    });
 
     // 4. Ask AI to analyze the request and determine what changes to make
     const contextContent = `Request: ${requestText}
 
 Files in the PR:
-${Object.entries(fileContents).map(([filename, content]) =>
-  `--- ${filename} ---\n${content}\n`
-).join('\n')}`;
+${Object.entries(fileContents)
+  .map(([filename, content]) => `--- ${filename} ---\n${content}\n`)
+  .join('\n')}`;
 
     // 5. Parse the AI response to extract search/replace blocks using requestCodeChanges
     const changes = await requestCodeChanges(contextContent, aiClient);
     const searchReplaceBlocks = changes.changes;
 
     if (searchReplaceBlocks.length === 0) {
-      console.log("No search / replace in:" + aiResponse);
+      console.log('No search / replace in:' + aiResponse);
       throw new Error('No valid search/replace blocks found in AI response');
     }
 
     // 6. Apply the search/replace blocks to the files with retry logic
     const changedFiles = new Set();
     const explanation = changes.explanation;
-    
+
     // Apply blocks with retry logic
     let currentBlocks = searchReplaceBlocks;
     currentBlocks = await applyPatches(currentBlocks, changedFiles, aiClient);
 
     // 7. Commit and push the changes
-    let commitMessage = `AI: ${explanation || 'Code changes requested'}
-
-Requested by comment on PR #${prNumber}`;
+    let commitMessage = getRefinedExplanation(explanation, aiClient);
 
     // Sanitize the commit message for command line safety
-    commitMessage = sanitizeForShell(commitMessage);
+    commitMessage = sanitizeForShell(
+      `${commitMessage}\n\nRequested by comment on PR #${prNumber}`
+    );
 
     git.addAll();
     git.commit(commitMessage);
@@ -145,7 +154,7 @@ Requested by comment on PR #${prNumber}`;
     return {
       success: true,
       explanation: explanation || 'Code changes applied successfully',
-      changedFiles: Array.from(changedFiles)
+      changedFiles: Array.from(changedFiles),
     };
   } catch (error) {
     console.error('Error modifying code:', error);
@@ -166,7 +175,7 @@ Requested by comment on PR #${prNumber}`;
     return {
       success: false,
       error: error.message,
-      details: error.stderr ? error.stderr.toString() : undefined
+      details: error.stderr ? error.stderr.toString() : undefined,
     };
   }
 }
@@ -184,7 +193,7 @@ async function isPullRequest(octokit, owner, repo, number) {
     await octokit.pulls.get({
       owner,
       repo,
-      pull_number: number
+      pull_number: number,
     });
     return true;
   } catch (error) {
@@ -216,18 +225,20 @@ function sanitizeForShell(str) {
  * @returns {Promise<Array<Object>>} - Array of search/replace blocks
  */
 async function requestCodeChanges(context, aiClient, additionalContext = '') {
-  const contextToUse = additionalContext ? `${context}\n\nAdditional context:\n${additionalContext}` : context;
-  
+  const contextToUse = additionalContext
+    ? `${context}\n\nAdditional context:\n${additionalContext}`
+    : context;
+
   const aiResponse = await aiClient.generateCompletion({
     prompt: PROMPTS.CODE_MODIFICATION,
     context: contextToUse,
     modelStrength: 'strong', // Use strong model for code modifications
-    temperature: 0.2
+    temperature: 0.2,
   });
-  
+
   return {
     changes: extractSearchReplaceBlocks(aiResponse),
-    explanation: extractExplanation(aiResponse)
+    explanation: extractExplanation(aiResponse),
   };
 }
 
@@ -237,9 +248,10 @@ async function requestCodeChanges(context, aiClient, additionalContext = '') {
  * @returns {Array<Object>} - Array of search/replace blocks
  */
 function extractSearchReplaceBlocks(response) {
-  console.log("Search replace blocks in response: \n" + response);
+  console.log('Search replace blocks in response: \n' + response);
   const blocks = [];
-  const regex = /([^\n]+)\n```[^\n]*\n<<<<<<< SEARCH\n([\s\S]*?)=======\n([\s\S]*?)>>>>>>> REPLACE\n```/g;
+  const regex =
+    /([^\n]+)\n```[^\n]*\n<<<<<<< SEARCH\n([\s\S]*?)=======\n([\s\S]*?)>>>>>>> REPLACE\n```/g;
 
   let match;
   while ((match = regex.exec(response)) !== null) {
@@ -247,7 +259,7 @@ function extractSearchReplaceBlocks(response) {
     blocks.push({
       filename: filename.trim(),
       search,
-      replace
+      replace,
     });
   }
 
@@ -277,21 +289,19 @@ function extractExplanation(response) {
  * @param {Object} aiClient - AIClient instance
  * @returns {Promise<string>} - Refined explanation
  */
-async function generateRefinedExplanation(extractedExplanation, aiClient) {
+async function getRefinedExplanation(extractedExplanation, aiClient) {
   if (!extractedExplanation) {
     return 'Code changes requested';
   }
 
-  const prompt = `Based on the following technical explanation of code changes, create a clear, concise summary suitable for a git commit message (max 80 characters):
-
-${extractedExplanation}`;
+  const prompt = PROMPTS.COMMIT_MESSAGE;
 
   try {
     const refinedExplanation = await aiClient.generateCompletion({
       prompt,
-      context: '',
+      context: `Technical explanation: ${extractedExplanation}`,
       modelStrength: 'weak', // Use weak model for simple text generation
-      temperature: 0.7
+      temperature: 0.7,
     });
 
     // Trim and limit length if needed
@@ -313,10 +323,10 @@ async function applyPatches(blocks, changedFiles, aiClient) {
   let currentBlocks = blocks;
   let maxRetries = 3;
   let retryCount = 0;
-  
+
   while (retryCount < maxRetries) {
     const failedBlocks = [];
-    
+
     // Try to apply each block
     for (const block of currentBlocks) {
       try {
@@ -325,7 +335,9 @@ async function applyPatches(blocks, changedFiles, aiClient) {
 
         // Check if file exists
         if (!fs.existsSync(filename) && search.trim() !== '') {
-          throw new Error(`File ${filename} does not exist but has non-empty search content`);
+          throw new Error(
+            `File ${filename} does not exist but has non-empty search content`
+          );
         }
 
         // For new files with empty search section
@@ -354,35 +366,44 @@ async function applyPatches(blocks, changedFiles, aiClient) {
         // Write the modified content back to the file
         fs.writeFileSync(filename, content, 'utf8');
       } catch (blockError) {
-        console.warn(`Error applying block for ${block.filename}:`, blockError.message);
+        console.warn(
+          `Error applying block for ${block.filename}:`,
+          blockError.message
+        );
         failedBlocks.push({
           block,
-          error: blockError.message
+          error: blockError.message,
         });
       }
     }
-    
+
     // If no failures, we're done
     if (failedBlocks.length === 0) {
       break;
     }
-    
+
     // If we've reached max retries, log and exit
     if (retryCount >= maxRetries - 1) {
-      console.warn(`Failed to apply ${failedBlocks.length} blocks after ${maxRetries} retries`);
+      console.warn(
+        `Failed to apply ${failedBlocks.length} blocks after ${maxRetries} retries`
+      );
       break;
     }
-    
+
     // Otherwise, retry the failed blocks
     retryCount++;
-    console.log(`Retry attempt ${retryCount} for ${failedBlocks.length} failed blocks`);
-    
+    console.log(
+      `Retry attempt ${retryCount} for ${failedBlocks.length} failed blocks`
+    );
+
     // Create a new request for the AI to fix the failed blocks
     const retryRequestText = `
 Some of the search/replace blocks failed to apply. Please provide corrected versions for these blocks:
 
-${failedBlocks.map(fb => 
-`File: ${fb.block.filename}
+${failedBlocks
+  .map(
+    (fb) =>
+      `File: ${fb.block.filename}
 Error: ${fb.error}
 Original search:
 \`\`\`
@@ -392,26 +413,29 @@ Original replace:
 \`\`\`
 ${fb.block.replace}
 \`\`\`
-`).join('\n')}
+`
+  )
+  .join('\n')}
 
 Please provide corrected search/replace blocks for these files.`;
 
     // Get a new AI response for the failed blocks, passing the additional context
-    const retryBlocks = await requestCodeChanges(retryRequestText, aiClient, contextContent).changes;
-    
+    const retryBlocks = await requestCodeChanges(
+      retryRequestText,
+      aiClient,
+      contextContent
+    ).changes;
+
     if (retryBlocks.length === 0) {
-      console.warn("No valid search/replace blocks found in retry response");
+      console.warn('No valid search/replace blocks found in retry response');
       break;
     }
-    
+
     // Update current blocks to only the retry blocks
     currentBlocks = retryBlocks;
   }
-  
+
   return currentBlocks;
 }
 
-export {
-  modifyCode,
-  requestCodeChanges
-};
+export { modifyCode, requestCodeChanges };
