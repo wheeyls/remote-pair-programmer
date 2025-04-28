@@ -88,7 +88,7 @@ async function modifyCode({ owner, repo, prNumber, requestText, aiClient }) {
       // Clone the repository and create a new branch for the issue
       git.clone(repoUrl, branch);
 
-      const newBranch = `ai-changes-issue-${prNumber}`;
+      const newBranch = `ai-bot/ai-changes-issue-${prNumber}`;
       git.checkoutNewBranch(newBranch);
       branch = newBranch;
     }
