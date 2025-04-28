@@ -103,7 +103,8 @@ export async function runHandler(command, deps = {}) {
     return queue.enqueue(command, { owner, repo, issueNumber, commentId });
   } else if (command === 'process-comment') {
     const commentId = process.env.COMMENT_ID;
-
+    // For comments on PRs, we use prNumber as the issue_number
+    // GitHub's API treats PR numbers and issue numbers as the same namespace
     return queue.enqueue(command, { owner, repo, prNumber, commentId });
   } else if (command === 'process-review-comment') {
     const commentId = process.env.COMMENT_ID;
