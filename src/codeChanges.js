@@ -135,7 +135,7 @@ ${Object.entries(fileContents)
     currentBlocks = await applyPatches(currentBlocks, changedFiles, aiClient);
 
     // 7. Commit and push the changes
-    let commitMessage = getRefinedExplanation(explanation, aiClient);
+    let commitMessage = await getRefinedExplanation(explanation, aiClient);
 
     // Sanitize the commit message for command line safety
     commitMessage = sanitizeForShell(
