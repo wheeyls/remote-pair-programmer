@@ -21,7 +21,7 @@ jobs:
     if: ${{ (github.event_name == 'pull_request') || (github.event_name == 'issue_comment') || (github.event_name == 'pull_request_review_comment') || (github.event_name == 'issues') }}
     steps:
       - name: Run AI Agent
-        uses: wheeyls/pr_agent@stable
+        uses: wheeyls/remote-pair-programmer@main
         with:
           ai-provider: 'anthropic'
           queue-service-url: ${{ secrets.QUEUE_SERVICE_URL }}
