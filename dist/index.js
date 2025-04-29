@@ -62437,7 +62437,7 @@ async function runHandler(command, deps = {}) {
 
 async function run() {
   try {
-    // Get inputs
+    // Get inputs from GitHub Actions
     const openaiApiKey = coreExports.getInput('openai-api-key');
     const anthropicApiKey = coreExports.getInput('anthropic-api-key');
     const model = coreExports.getInput('model');
@@ -62447,56 +62447,76 @@ async function run() {
     const aiProvider = coreExports.getInput('ai-provider');
     const queueServiceUrl = coreExports.getInput('queue-service-url');
     const queueAuthToken = coreExports.getInput('queue-auth-token');
-
-    // Set environment variables
-    process.env.AI_API_KEY = openaiApiKey;
-    process.env.ANTHROPIC_API_KEY = anthropicApiKey;
-    process.env.AI_MODEL = model;
-    process.env.STRONG_AI_MODEL = strongModel;
-    process.env.WEAK_AI_MODEL = weakModel;
-    process.env.TRIGGER_PHRASE = triggerPhrase;
-    process.env.AI_PROVIDER = aiProvider;
-    process.env.QUEUE_SERVICE_URL = queueServiceUrl;
-    process.env.QUEUE_AUTH_TOKEN = queueAuthToken;
     
-    // Set GitHub-related environment variables
-    process.env.GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+    // Create a copy of the config and override with GitHub Actions inputs
+    const actionConfig = { ...config };
+    
+    // Override AI configuration
+    actionConfig.ai = {
+      ...actionConfig.ai,
+      apiKey: openaiApiKey || actionConfig.ai.apiKey,
+      anthropicApiKey: anthropicApiKey || actionConfig.ai.anthropicApiKey,
+      model: model || actionConfig.ai.model,
+      strongModel: strongModel || actionConfig.ai.strongModel,
+      weakModel: weakModel || actionConfig.ai.weakModel,
+      provider: aiProvider || actionConfig.ai.provider,
+    };
+    
+    // Override queue configuration
+    actionConfig.queue = {
+      ...actionConfig.queue,
+      serviceUrl: queueServiceUrl || actionConfig.queue.serviceUrl,
+      authToken: queueAuthToken || actionConfig.queue.authToken,
+    };
+    
+    // Override bot configuration
+    actionConfig.bot = {
+      ...actionConfig.bot,
+      triggerPhrase: triggerPhrase || actionConfig.bot.triggerPhrase,
+    };
+    
+    // Override GitHub configuration
+    actionConfig.github = {
+      ...actionConfig.github,
+      token: process.env.GITHUB_TOKEN || actionConfig.github.token,
+    };
     
     const eventName = process.env.GITHUB_EVENT_NAME;
     const eventPayload = githubExports.context.payload;
+    
+    // Set all action config properties up front
+    actionConfig.actions = {
+      ...actionConfig.actions,
+      repoOwner: githubExports.context.repo.owner,
+      repoName: githubExports.context.repo.repo,
+      prNumber: eventPayload.pull_request?.number?.toString() || 
+                eventPayload.issue?.number?.toString() || 
+                actionConfig.actions.prNumber,
+      commentId: eventPayload.comment?.id?.toString() || 
+                 actionConfig.actions.commentId
+    };
     
     let command;
     
     // Determine which command to run based on the event type
     if (eventName === 'pull_request') {
       command = 'process-pr';
-      process.env.PR_NUMBER = eventPayload.pull_request.number.toString();
     } else if (eventName === 'issues') {
       command = 'process-issue';
-      process.env.PR_NUMBER = eventPayload.issue.number.toString();
     } else if (eventName === 'issue_comment') {
-      if (eventPayload.issue.pull_request) {
+      if (eventPayload.issue?.pull_request) {
         command = 'process-comment';
       } else {
         command = 'process-issue-comment';
       }
-      process.env.PR_NUMBER = eventPayload.issue.number.toString();
-      process.env.COMMENT_ID = eventPayload.comment.id.toString();
-      process.env.COMMENT_BODY = eventPayload.comment.body;
     } else if (eventName === 'pull_request_review_comment') {
       command = 'process-review-comment';
-      process.env.PR_NUMBER = eventPayload.pull_request.number.toString();
-      process.env.COMMENT_ID = eventPayload.comment.id.toString();
-      process.env.COMMENT_BODY = eventPayload.comment.body;
     } else {
       command = 'process-comment';
     }
     
-    process.env.REPO_OWNER = githubExports.context.repo.owner;
-    process.env.REPO_NAME = githubExports.context.repo.repo;
-    
-    // Run the handler with the determined command
-    await runHandler(command);
+    // Run the handler with the determined command and config
+    await runHandler(command, { config: actionConfig });
     
   } catch (error) {
     coreExports.setFailed(error.message);
