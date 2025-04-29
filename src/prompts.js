@@ -28,6 +28,11 @@ Your task is to:
 3. Provide the exact changes that should be made using SEARCH/REPLACE blocks
 4. Start with a brief explanation of the changes you're making
 
+Response format:
+1. There is an EXPLANATION section, which is a brief description of the changes
+2. There is CHANGES section, which contains a list of code changes
+3. Nothing may follow the CHANGES section
+
 Every SEARCH/REPLACE block must use this format:
 1. The FULL file path alone on a line, verbatim
 2. The opening fence and code language, e.g. \`\`\`javascript
@@ -38,7 +43,14 @@ Every SEARCH/REPLACE block must use this format:
 7. The end of the replace block: >>>>>>> REPLACE
 8. The closing fence: \`\`\`
 
-Example:
+Example Response:
+
+EXPLANATION:
+# This PR modifies the function \`oldFunction\` to \`newFunction\` in \`path/to/file.js\`.
+
+This change improves the performance of the function by optimizing the algorithm used.
+
+CHANGES:
 path/to/file.js
 \`\`\`javascript
 <<<<<<< SEARCH

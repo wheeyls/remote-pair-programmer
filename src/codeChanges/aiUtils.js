@@ -22,9 +22,18 @@ async function requestCodeChanges(context, aiClient, additionalContext = '') {
     temperature: 0.2,
   });
 
+  return extractCodeChanges(aiResponse);
+}
+
+/**
+ * Extract code changes and explanation from AI response
+ * @param {string} response - The AI response text
+ * @returns {Object} - Object containing changes and explanation
+ */
+function extractCodeChanges(response) {
   return {
-    changes: extractSearchReplaceBlocks(aiResponse),
-    explanation: extractExplanation(aiResponse),
+    changes: extractSearchReplaceBlocks(response),
+    explanation: extractExplanation(response),
   };
 }
 
@@ -59,14 +68,10 @@ function extractSearchReplaceBlocks(response) {
  * @returns {string} - Extracted explanation
  */
 function extractExplanation(response) {
-  // Look for explanation at the beginning of the response, before any search/replace blocks
-  const explanationRegex = /^([\s\S]*?)(?:[^\n]+\n```[^\n]*\n<<<<<<< SEARCH)/;
-  const match = response.match(explanationRegex);
-
-  if (match && match[1]) {
-    return match[1].trim();
+  const headerMatch = response.match(/EXPLANATION:\s*([\s\S]*?)\s*CHANGES:/);
+  if (headerMatch && headerMatch[1]) {
+    return headerMatch[1].trim();
   }
-
   return '';
 }
 
@@ -101,6 +106,7 @@ async function getRefinedExplanation(extractedExplanation, aiClient) {
 
 export {
   requestCodeChanges,
+  extractCodeChanges,
   extractSearchReplaceBlocks,
   extractExplanation,
   getRefinedExplanation,

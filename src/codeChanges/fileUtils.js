@@ -91,7 +91,9 @@ async function applyPatches(blocks, changedFiles, aiClient, contextContent) {
 
     // If we've reached max retries, log and exit
     if (retryCount >= maxRetries - 1) {
-      throw new Error(`Failed to apply ${failedBlocks.length} blocks after ${maxRetries} retries`);
+      throw new Error(
+        `Failed to apply ${failedBlocks.length} blocks after ${maxRetries} retries`
+      );
     }
 
     // Otherwise, retry the failed blocks
@@ -106,15 +108,9 @@ async function applyPatches(blocks, changedFiles, aiClient, contextContent) {
     ];
 
     // Instead of reading files from disk, filter the contextContent to only include relevant files
-    let filteredContextContent;
-    if (isContextContentObject) {
-      filteredContextContent = contextContent.filterFiles((filename) =>
-        uniqueFiles.includes(filename)
-      );
-    } else {
-      // fallback: just use the original contextContent (string)
-      filteredContextContent = contextContent;
-    }
+    const filteredContextContent = contextContent.filterFiles((filename) =>
+      uniqueFiles.includes(filename)
+    );
 
     // Create a new request for the AI to fix the failed blocks, including user request and file contents
     const retryRequestText = `${filteredContextContent.requestCopy()}

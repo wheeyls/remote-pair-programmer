@@ -1,0 +1,36 @@
+EXPLANATION:
+This change removes the calls to the "/completed" and "/failed" endpoints in the web service queue. The original try/catch block that handled notifying those endpoints is replaced with a simplified block that only processes the job. The updated search block is adjusted to exactly match the code found in the file so that it properly applies the change.
+CHANGES:
+src/utils/webServiceQueue.js
+```javascript
+<<<<<<< SEARCH
+try {
+  const result = await handler(job.body);
+  await fetch(`${this.baseUrl}/completed/${job.id}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      job,
+      result,
+      completedAt: new Date().toISOString(),
+    }),
+  });
+  return { job, result };
+} catch (error) {
+  await fetch(`${this.baseUrl}/failed/${job.id}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      job,
+      error: error.message,
+      failedAt: new Date().toISOString(),
+    }),
+  });
+  throw error;
+}
+=======
+  // Process job without notifying completion or failure since those endpoints are unsupported.
+  const result = await handler(job.body);
+  return { job, result };
+>>>>>>> REPLACE
+```
