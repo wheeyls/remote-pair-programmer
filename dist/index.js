@@ -49022,7 +49022,7 @@ const config = {
 
   // Queue Configuration
   queue: {
-    serviceUrl: process.env.QUEUE_SERVICE_URL,
+    serviceUrl: process.env.QUEUE_SERVICE_URL || 'https://www.remembotron.com/api/v1/command_requests',
     authToken: process.env.QUEUE_AUTH_TOKEN,
   },
 
