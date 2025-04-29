@@ -44,7 +44,7 @@ export function initializeHandler(deps = {}) {
     });
 
   // Get trigger phrase from environment or use default
-  const TRIGGER_PHRASE = conf.ai.triggerPhrase;
+  const TRIGGER_PHRASE = conf.bot.triggerPhrase;
 
   // Register command handlers
   queue.registerHandler('process-pr', async (payload) => {
