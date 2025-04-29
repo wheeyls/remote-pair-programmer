@@ -23,7 +23,7 @@ function sanitizeForShell(str) {
  * @param {Array<Object>} blocks - Search/replace blocks to apply
  * @param {Set<string>} changedFiles - Set to track changed files
  * @param {Object} aiClient - AIClient instance
- * @param {string} contextContent - Original context content for retries
+ * @param {ContextContent} contextContent - Original context content for retries
  * @returns {Array<Object>} - Remaining blocks that couldn't be applied
  */
 async function applyPatches(blocks, changedFiles, aiClient, contextContent) {
@@ -91,10 +91,7 @@ async function applyPatches(blocks, changedFiles, aiClient, contextContent) {
 
     // If we've reached max retries, log and exit
     if (retryCount >= maxRetries - 1) {
-      console.warn(
-        `Failed to apply ${failedBlocks.length} blocks after ${maxRetries} retries`
-      );
-      break;
+      throw new Error(`Failed to apply ${failedBlocks.length} blocks after ${maxRetries} retries`);
     }
 
     // Otherwise, retry the failed blocks
@@ -103,9 +100,26 @@ async function applyPatches(blocks, changedFiles, aiClient, contextContent) {
       `Retry attempt ${retryCount} for ${failedBlocks.length} failed blocks`
     );
 
-    // Create a new request for the AI to fix the failed blocks
-    const retryRequestText = `
-Some of the search/replace blocks failed to apply. Please provide corrected versions for these blocks:
+    // Gather unique filenames from failed blocks
+    const uniqueFiles = [
+      ...new Set(failedBlocks.map((fb) => fb.block.filename)),
+    ];
+
+    // Instead of reading files from disk, filter the contextContent to only include relevant files
+    let filteredContextContent;
+    if (isContextContentObject) {
+      filteredContextContent = contextContent.filterFiles((filename) =>
+        uniqueFiles.includes(filename)
+      );
+    } else {
+      // fallback: just use the original contextContent (string)
+      filteredContextContent = contextContent;
+    }
+
+    // Create a new request for the AI to fix the failed blocks, including user request and file contents
+    const retryRequestText = `${filteredContextContent.requestCopy()}
+
+The following search/replace blocks failed to apply. Please provide corrected versions for these blocks:
 
 ${failedBlocks
   .map(
@@ -124,13 +138,17 @@ ${fb.block.replace}
   )
   .join('\n')}
 
-Please provide corrected search/replace blocks for these files.`;
+Here are the contents of the relevant files:
+${filteredContextContent.fileCopy()}
+
+Please provide corrected search/replace blocks for these files.
+`;
 
     // Get a new AI response for the failed blocks, passing the additional context
     const retryResponse = await requestCodeChanges(
       retryRequestText,
       aiClient,
-      contextContent
+      filteredContextContent
     );
 
     const retryBlocks = retryResponse.changes;

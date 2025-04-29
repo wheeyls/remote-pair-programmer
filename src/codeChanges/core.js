@@ -8,6 +8,7 @@ import { isPullRequest } from './prUtils.js';
 import { requestCodeChanges, getRefinedExplanation } from './aiUtils.js';
 import { applyPatches, sanitizeForShell } from './fileUtils.js';
 import { config } from '../config.js';
+import ContextContent from './ContextContent.js';
 
 /**
  * Analyzes a request to modify code and makes the requested changes
@@ -142,12 +143,7 @@ async function modifyCode({
     });
 
     // 4. Ask AI to analyze the request and determine what changes to make
-    const contextContent = `Request: ${requestText}
-
-Files in the PR:
-${Object.entries(fileContents)
-  .map(([filename, content]) => `--- ${filename} ---\n${content}\n`)
-  .join('\n')}`;
+    const contextContent = new ContextContent(requestText, fileContents);
 
     // 5. Parse the AI response to extract search/replace blocks using requestCodeChanges
     const changes = await requestChanges(contextContent, aiClient);
