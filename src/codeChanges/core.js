@@ -9,6 +9,7 @@ import { requestCodeChanges, getRefinedExplanation } from './aiUtils.js';
 import { applyPatches, sanitizeForShell } from './fileUtils.js';
 import { config } from '../config.js';
 import ContextContent from './ContextContent.js';
+import { execSync } from 'child_process';
 
 /**
  * Analyzes a request to modify code and makes the requested changes
@@ -172,7 +173,12 @@ async function modifyCode({
 
     // Sanitize the commit message for command line safety
     commitMessage = sanitizeForShell(commitMessage);
-
+    
+    if (fs.existsSync('.lintstagedrc.yml')) {
+      console.log("Found .lintstagedrc.yml, running lint-staged...");
+      execSync('npx lint-staged', { stdio: 'inherit' });
+    }
+    
     git.addAll();
     git.commit(`${commitMessage}\n\nRequested by comment on PR #${prNumber}`);
 
