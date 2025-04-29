@@ -52,47 +52,33 @@ async function run() {
     const eventName = process.env.GITHUB_EVENT_NAME;
     const eventPayload = github.context.payload;
     
+    // Set all action config properties up front
+    actionConfig.actions = {
+      ...actionConfig.actions,
+      repoOwner: github.context.repo.owner,
+      repoName: github.context.repo.repo,
+      prNumber: eventPayload.pull_request?.number?.toString() || 
+                eventPayload.issue?.number?.toString() || 
+                actionConfig.actions.prNumber,
+      commentId: eventPayload.comment?.id?.toString() || 
+                 actionConfig.actions.commentId
+    };
+    
     let command;
     
     // Determine which command to run based on the event type
     if (eventName === 'pull_request') {
       command = 'process-pr';
-      actionConfig.actions = {
-        ...actionConfig.actions,
-        repoOwner: github.context.repo.owner,
-        repoName: github.context.repo.repo,
-        prNumber: eventPayload.pull_request.number.toString(),
-      };
     } else if (eventName === 'issues') {
       command = 'process-issue';
-      actionConfig.actions = {
-        ...actionConfig.actions,
-        repoOwner: github.context.repo.owner,
-        repoName: github.context.repo.repo,
-        prNumber: eventPayload.issue.number.toString(),
-      };
     } else if (eventName === 'issue_comment') {
-      if (eventPayload.issue.pull_request) {
+      if (eventPayload.issue?.pull_request) {
         command = 'process-comment';
       } else {
         command = 'process-issue-comment';
       }
-      actionConfig.actions = {
-        ...actionConfig.actions,
-        repoOwner: github.context.repo.owner,
-        repoName: github.context.repo.repo,
-        prNumber: eventPayload.issue.number.toString(),
-        commentId: eventPayload.comment.id.toString(),
-      };
     } else if (eventName === 'pull_request_review_comment') {
       command = 'process-review-comment';
-      actionConfig.actions = {
-        ...actionConfig.actions,
-        repoOwner: github.context.repo.owner,
-        repoName: github.context.repo.repo,
-        prNumber: eventPayload.pull_request.number.toString(),
-        commentId: eventPayload.comment.id.toString(),
-      };
     } else {
       command = 'process-comment';
     }
