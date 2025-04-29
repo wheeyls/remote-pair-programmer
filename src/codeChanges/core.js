@@ -4,11 +4,9 @@ import os from 'os';
 import { Octokit } from '@octokit/rest';
 import { processFileContext } from '../utils/fileContext.js';
 import GitClient from '../utils/gitClient.js';
-import { isPullRequest } from './prUtils.js';
 import { requestCodeChanges, getRefinedExplanation } from './aiUtils.js';
 import { applyPatches, sanitizeForShell } from './fileUtils.js';
 import { config } from '../config.js';
-import ContextContent from './ContextContent.js';
 import { execSync } from 'child_process';
 
 function lintStagedCheck(git) {
@@ -41,13 +39,11 @@ function lintStagedCheck(git) {
  * @returns {Object} - Result of the code modification operation
  */
 async function modifyCode({
-  owner,
-  repo,
-  prNumber,
-  requestText,
+  prHelper,
   aiClient,
   octokit,
   git,
+  contextContent,
   utils = {},
 }) {
   // Create a temporary directory for the repository
@@ -60,7 +56,6 @@ async function modifyCode({
     getRefinedExplanation: getExplanation = getRefinedExplanation,
     processFileContext: processFiles = processFileContext,
     applyPatches: applyChanges = applyPatches,
-    isPullRequest: isPR = isPullRequest,
   } = utils;
 
   try {
@@ -80,23 +75,15 @@ async function modifyCode({
     let files = [];
     let branch = '';
     let repoUrl = '';
+    const { owner, repo, prNumber } = prHelper;
 
     // Determine the branch and repository URL based on the context
-    const isPullReq = await isPR(octokit, owner, repo, prNumber);
+    const isPullReq = await prHelper.isPR();
 
     if (isPullReq) {
       // For pull requests, use the PR's head branch
-      const { data: pullRequest } = await octokit.pulls.get({
-        owner,
-        repo,
-        pull_number: prNumber,
-      });
-
-      const { data: prFiles } = await octokit.pulls.listFiles({
-        owner,
-        repo,
-        pull_number: prNumber,
-      });
+      const pullRequest = await prHelper.getDetails();
+      const prFiles = await prHelper.getFiles();
 
       files = prFiles;
       branch = pullRequest.head.ref;
@@ -143,26 +130,7 @@ async function modifyCode({
       }
     }
 
-    // 3. Get file contents for relevant files
-    let additionalFiles = [];
-
-    if (isPullReq && files.length > 0) {
-      // If it's a PR, use the files from the PR
-      additionalFiles = files
-        .filter((file) => file.status !== 'removed')
-        .map((file) => file.filename);
-    }
-
-    // Process file context directives in the request text
-    const fileContents = processFiles({
-      text: requestText,
-      additionalFiles,
-    });
-
-    // 4. Ask AI to analyze the request and determine what changes to make
-    const contextContent = new ContextContent(requestText, fileContents);
-
-    // 5. Parse the AI response to extract search/replace blocks using requestCodeChanges
+    // Parse the AI response to extract search/replace blocks using requestCodeChanges
     const changes = await requestChanges(contextContent, aiClient);
     const searchReplaceBlocks = changes.changes;
 
@@ -171,7 +139,7 @@ async function modifyCode({
       throw new Error('No valid search/replace blocks found in AI response');
     }
 
-    // 6. Apply the search/replace blocks to the files with retry logic
+    // Apply the search/replace blocks to the files with retry logic
     const changedFiles = new Set();
     const explanation = changes.explanation;
 
@@ -184,7 +152,7 @@ async function modifyCode({
       contextContent
     );
 
-    // 7. Commit and push the changes
+    // Commit and push the changes
     let commitMessage = await getExplanation(explanation, aiClient);
 
     // Sanitize the commit message for command line safety

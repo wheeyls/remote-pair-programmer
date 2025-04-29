@@ -2,6 +2,8 @@ import { modifyCode as defaultCodeModifier } from '../codeChanges/index.js';
 import PROMPTS from '../prompts.js';
 import handleError from './errorHandler.js';
 import addIssueComment from './commentUtils.js';
+import { ContextContent } from '../codeChanges/ContextContent.js';
+import { PRHelper } from '../github/prHelper.js';
 
 /**
  * Process a request from a PR or comment
@@ -28,6 +30,7 @@ async function processRequest(params) {
   const { owner, repo, prNumber } = context;
 
   const modifyCode = codeModifier || defaultCodeModifier;
+  const pr = new PRHelper({ octokit, owner, repo, prNumber });
 
   // Check if this is a bot message or should be ignored
   if (requestText.includes('bot:ignore')) {
@@ -47,17 +50,22 @@ async function processRequest(params) {
 
     if (!isArchitectureRequest) {
       // This is a code modification request
+      const contextContent = new ContextContent(requestText, pr);
+
       const result = await modifyCode({
-        owner,
-        repo,
-        prNumber,
-        requestText,
+        prHelper: pr,
         aiClient,
+        contextContent,
+        octokit,
       });
 
       let responseBody;
       if (result.success) {
-        responseBody = `✅ I've made the requested changes and pushed them to this PR.\n\n**Changes made:**\n${result.explanation}\n\n**Modified files:**\n${result.changedFiles.map((f) => `- \`${f}\``).join('\n')}`;
+        responseBody = `✅ I've made the requested changes and pushed them to this PR.\n\n**Changes made:**\n${
+          result.explanation
+        }\n\n**Modified files:**\n${result.changedFiles
+          .map((f) => `- \`${f}\``)
+          .join('\n')}`;
       } else {
         responseBody = `❌ I encountered an error while trying to modify the code:\n\`\`\`\n${result.error}\n\`\`\`\n\nPlease provide more details or try a different request.`;
       }

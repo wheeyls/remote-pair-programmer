@@ -1,9 +1,23 @@
 import fs from 'fs';
+import { processFileContext } from '../utils/fileContext.js';
 
 class ContextContent {
-  constructor(requestText, filePaths) {
+  constructor(requestText, prHelper) {
     this.requestText = requestText;
-    this.filePaths = Array.isArray(filePaths) ? filePaths : Object.keys(filePaths || {});
+    this.prHelper = prHelper;
+  }
+
+  filePaths() {
+    if (this.available) {
+      return this.available;
+    }
+
+    const all = processFileContext({
+      text: this.requestText,
+      additionalFiles: this.prHelper.getFiles(),
+    });
+
+    return (this.available = Object.keys(all || {}));
   }
 
   toString() {
@@ -11,12 +25,24 @@ class ContextContent {
   }
 
   requestCopy() {
-    return `Request: ${this.requestText}`;
+    let copy = '';
+    if (
+      this.prContext &&
+      this.prContext.body &&
+      this.prContext.body !== this.requestText
+    ) {
+      copy += `PR Details:\n${this.prContext.body}\n\n`;
+    }
+    if (this.prContext && this.prContext.comments) {
+      copy += `Comment Thread:\n${this.prContext.comments}\n\n`;
+    }
+    copy += `Request: ${this.requestText}`;
+    return copy;
   }
 
   getFileContents() {
     const fileContents = {};
-    for (const filePath of this.filePaths) {
+    for (const filePath of this.filePaths()) {
       try {
         fileContents[filePath] = fs.readFileSync(filePath, 'utf8');
       } catch (error) {
@@ -34,14 +60,6 @@ ${Object.entries(fileContents)
   .map(([filename, content]) => `--- ${filename} ---\n${content}\n`)
   .join('\n')}`;
   }
-
-  filterFiles(callback) {
-    const fileContents = this.getFileContents();
-    const filteredPaths = this.filePaths.filter(filePath => 
-      callback(filePath, fileContents[filePath])
-    );
-    return new ContextContent(this.requestText, filteredPaths);
-  }
 }
 
-export default ContextContent;
+export { ContextContent };

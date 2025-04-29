@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
 import processRequest from '../src/utils/processRequest.js';
+import { PRHelper } from '../src/github/prHelper.js';
 
 describe('processRequest', () => {
   let mockAiClient;
@@ -51,12 +52,15 @@ describe('processRequest', () => {
     });
 
     // Check if mockModifyCode was called with correct parameters
+    // (should have received a prHelper instance)
     expect(mockModifyCode).toHaveBeenCalledWith({
-      owner: 'test-owner',
-      repo: 'test-repo',
-      prNumber: 123,
-      requestText: '@test-bot change this code please',
+      prHelper: expect.any(PRHelper),
       aiClient: mockAiClient,
+      contextContent: expect.objectContaining({
+        requestText: '@test-bot change this code please',
+        prHelper: expect.any(PRHelper),
+      }),
+      octokit: mockOctokit,
     });
 
     // Check if comment was created with success message

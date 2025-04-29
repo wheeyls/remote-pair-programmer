@@ -102,20 +102,12 @@ async function applyPatches(blocks, changedFiles, aiClient, contextContent) {
       `Retry attempt ${retryCount} for ${failedBlocks.length} failed blocks`
     );
 
-    // Gather unique filenames from failed blocks
-    const uniqueFiles = [
-      ...new Set(failedBlocks.map((fb) => fb.block.filename)),
-    ];
-
-    // Instead of reading files from disk, filter the contextContent to only include relevant files
-    const filteredContextContent = contextContent.filterFiles((filename) =>
-      uniqueFiles.includes(filename)
-    );
-
     // Create a new request for the AI to fix the failed blocks, including user request and file contents
-    const retryRequestText = `${filteredContextContent.requestCopy()}
+    const retryRequestText = `${contextContent.toString()}
 
-The following search/replace blocks failed to apply. Please provide corrected versions for these blocks:
+This is a repeated attempt to apply the search/replace blocks.
+The following search/replace blocks failed to apply. The other blocks were applied successfully.
+Please provide corrected versions for these blocks:
 
 ${failedBlocks
   .map(
@@ -133,18 +125,13 @@ ${fb.block.replace}
 `
   )
   .join('\n')}
-
-Here are the contents of the relevant files:
-${filteredContextContent.fileCopy()}
-
-Please provide corrected search/replace blocks for these files.
 `;
 
     // Get a new AI response for the failed blocks, passing the additional context
     const retryResponse = await requestCodeChanges(
       retryRequestText,
       aiClient,
-      filteredContextContent
+      contextContent
     );
 
     const retryBlocks = retryResponse.changes;
