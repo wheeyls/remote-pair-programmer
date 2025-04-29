@@ -34,7 +34,7 @@ async function addIssueComment({
   }
 
   // Add bot:ignore directive to prevent the bot from responding to its own messages
-  const messageWithIgnore = body + '\n\nbot:ignore';
+  const messageWithIgnore = body + '\n\n<!-- bot:ignore -->';
 
   try {
     if (type === 'pull' && comment_id) {
