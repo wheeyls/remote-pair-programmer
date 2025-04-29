@@ -29,6 +29,9 @@ export class OpenAIAdapter extends BaseAdapter {
    */
   async createChatCompletion(options) {
     try {
+      options.temperature = this.temperatureSupported(options)
+        ? options.temperature
+        : undefined;
       const completion = await this.client.chat.completions.create(options);
       return completion;
     } catch (error) {
@@ -46,5 +49,9 @@ export class OpenAIAdapter extends BaseAdapter {
       strong: 'gpt-4.1',
       weak: 'gpt-4.1-mini',
     };
+  }
+
+  temperatureSupported(options) {
+    return !options.model.match(/^o[34]/);
   }
 }

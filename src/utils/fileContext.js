@@ -166,10 +166,11 @@ function getFileContents(files) {
 /**
  * Process file context directives and return file contents
  * @param {string} text - Text containing directives
- * @param {Array<string>} baseFiles - Base set of files to include (e.g., PR files)
+ * @param {Array<string>} additionalFiles - Additional files to include
+ * @param {Function} baseFilesFn - Function that returns base files (for dependency injection)
  * @returns {Object} - Object mapping file paths to their contents
  */
-function processFileContext({ text, additionalFiles = [] }) {
+function processFileContext({ text, additionalFiles = [], baseFilesFn = baseFiles }) {
   // Extract directives
   const directives = extractFileDirectives(text);
 
@@ -177,7 +178,7 @@ function processFileContext({ text, additionalFiles = [] }) {
   const directiveFiles = resolveGlobs(directives.addFiles);
 
   // Combine base files with additional files
-  let allFiles = [...baseFiles(), ...additionalFiles, ...directiveFiles];
+  let allFiles = [...baseFilesFn(), ...additionalFiles, ...directiveFiles];
 
   // Apply ignore patterns
   allFiles = applyIgnorePatterns(allFiles, directives.ignoreFiles);
