@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "worker": "node worker.js",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest --config=jest.config.js",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --config=jest.config.js --verbose",
     "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --config=jest.config.js --watch",
     "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --config=jest.config.js --coverage",
     "lint": "eslint src/",
