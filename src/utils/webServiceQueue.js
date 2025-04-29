@@ -145,25 +145,7 @@ export class WebServiceQueue {
 
       const result = await this.processCommand(job.name, job.body);
 
-      // Record successful completion
-      const headers = {
-        'Content-Type': 'application/json',
-      };
-
-      // Add API token header if token is provided
-      if (this.authToken) {
-        headers['X-API-Token'] = this.authToken;
-      }
-
-      await fetch(`${this.baseUrl}/completed/${job.id}`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          job,
-          result,
-          completedAt: new Date().toISOString(),
-        }),
-      });
+      
 
       return { job, result };
     } catch (error) {
@@ -176,26 +158,6 @@ export class WebServiceQueue {
       }
 
       // Record failure
-      if (jobData) {
-        const headers = {
-          'Content-Type': 'application/json',
-        };
-
-        // Add API token header if token is provided
-        if (this.authToken) {
-          headers['X-API-Token'] = this.authToken;
-        }
-
-        await fetch(`${this.baseUrl}/failed/${jobData.id}`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            job: jobData,
-            error: error.message,
-            failedAt: new Date().toISOString(),
-          }),
-        });
-      }
 
       throw error;
     }

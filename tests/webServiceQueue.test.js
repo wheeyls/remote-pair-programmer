@@ -166,19 +166,10 @@ describe('WebServiceQueue', () => {
     // Process next job
     const result = await queue.processNextJob();
 
-    // Verify job was processed
-    expect(requestLog.length).toBe(2); // GET + POST for completion
+    // Verify job was processed via a single GET request
+    expect(requestLog.length).toBe(1);
     expect(requestLog[0].method).toBe('GET');
     expect(requestLog[0].url).toBe('/next');
-
-    // Verify completion was recorded
-    expect(requestLog[1].method).toBe('POST');
-    expect(requestLog[1].url).toBe('/completed/job-123');
-    expect(requestLog[1].body).toEqual({
-      job: mockJob,
-      result: 'test-result',
-      completedAt: expect.any(String),
-    });
 
     // Verify result
     expect(result.job).toEqual(mockJob);
@@ -243,14 +234,9 @@ describe('WebServiceQueue', () => {
     // Process next job
     await expect(queue.processNextJob()).rejects.toThrow('Test error');
 
-    // Verify error was recorded
-    expect(requestLog.length).toBe(2); // GET + POST for failure
-    expect(requestLog[1].method).toBe('POST');
-    expect(requestLog[1].url).toBe('/failed/job-123');
-    expect(requestLog[1].body).toEqual({
-      job: mockJob,
-      error: 'Test error',
-      failedAt: expect.any(String),
-    });
+    // Verify that only the GET request was made (no POST for failure)
+    expect(requestLog.length).toBe(1);
+    expect(requestLog[0].method).toBe('GET');
+    expect(requestLog[0].url).toBe('/next');
   });
 });
