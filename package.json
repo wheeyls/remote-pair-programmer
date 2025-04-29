@@ -11,7 +11,8 @@
     "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --config=jest.config.js --coverage",
     "lint": "eslint src/",
     "start": "node src/handler.js",
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "prepare": "husky"
   },
   "keywords": [
     "github-actions",
@@ -33,12 +34,14 @@
     "redis": "^4.6.10"
   },
   "devDependencies": {
+    "@jest/globals": "^29.7.0",
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
-    "@jest/globals": "^29.7.0",
     "eslint": "^8.0.0",
+    "husky": "^9.1.7",
     "jest": "^29.0.0",
+    "lint-staged": "^15.5.1",
     "prettier": "^3.5.3",
     "rollup": "^4.40.1"
   }
