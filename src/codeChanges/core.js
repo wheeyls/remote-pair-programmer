@@ -11,6 +11,22 @@ import { config } from '../config.js';
 import ContextContent from './ContextContent.js';
 import { execSync } from 'child_process';
 
+function lintStagedCheck(git) {
+  try {
+    if (
+      fs.existsSync('.lintstagedrc.json') ||
+      fs.existsSync('.lintstagedrc.yml')
+    ) {
+      console.log('Found .lintstagedrc, running lint-staged...');
+      execSync('npx lint-staged', { stdio: 'inherit' });
+
+      git.addAll();
+    }
+  } catch (error) {
+    console.error('Error running lint-staged:', error);
+  }
+}
+
 /**
  * Analyzes a request to modify code and makes the requested changes
  * @param {Object} params - Parameters for code modification
@@ -174,12 +190,10 @@ async function modifyCode({
     // Sanitize the commit message for command line safety
     commitMessage = sanitizeForShell(commitMessage);
 
-    if (fs.existsSync('.lintstagedrc.*')) {
-      console.log('Found .lintstagedrc.yml, running lint-staged...');
-      execSync('npx lint-staged', { stdio: 'inherit' });
-    }
-
     git.addAll();
+
+    lintStagedCheck(git);
+
     git.commit(`${commitMessage}\n\nRequested by comment on PR #${prNumber}`);
 
     git.push(repoUrl, branch);
