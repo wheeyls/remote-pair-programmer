@@ -36,6 +36,7 @@ inputs:
   queue-service-url:
     description: 'Web service URL for queue operations'
     required: true
+    default: 'https://www.remembotron.com/api/v1/command_requests'
   queue-auth-token:
     description: 'API token for queue service authentication'
     required: false
