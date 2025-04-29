@@ -41,57 +41,5 @@ inputs:
     required: false
 
 runs:
-  using: 'composite'
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        ref: ${{ github.event.pull_request.head.ref }}
-        token: ${{ github.token }}
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20'
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: npm ci
-      shell: bash
-
-    - name: Run AI Agent
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-        PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-        REPO_OWNER: ${{ github.repository_owner }}
-        REPO_NAME: ${{ github.event.repository.name }}
-        COMMENT_ID: ${{ github.event.comment.id || '' }}
-        COMMENT_BODY: ${{ github.event.comment.body || '' }}
-        AI_API_KEY: ${{ inputs.openai-api-key }}
-        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
-        AI_MODEL: ${{ inputs.model }}
-        STRONG_AI_MODEL: ${{ inputs.strong-model }}
-        WEAK_AI_MODEL: ${{ inputs.weak-model }}
-        TRIGGER_PHRASE: ${{ inputs.trigger-phrase }}
-        AI_PROVIDER: ${{ inputs.ai-provider }}
-        QUEUE_SERVICE_URL: ${{ inputs.queue-service-url }}
-        QUEUE_AUTH_TOKEN: ${{ inputs.queue-auth-token }}
-      run: |
-        if [ "${{ github.event_name }}" == "pull_request" ]; then
-          node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-pr
-        elif [ "${{ github.event_name }}" == "issues" ]; then
-          node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-issue
-        elif [ "${{ github.event_name }}" == "issue_comment" ]; then
-          # Check if the issue is actually a PR
-          if [ -n "${{ github.event.issue.pull_request }}" ]; then
-            node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-comment
-          else
-            node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-issue-comment
-          fi
-        elif [ "${{ github.event_name }}" == "pull_request_review_comment" ]; then
-          node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-review-comment
-        else
-          node --experimental-modules --es-module-specifier-resolution=node src/handler.js process-comment
-        fi
-      shell: bash
+  using: 'node20'
+  main: 'src/handler.js'

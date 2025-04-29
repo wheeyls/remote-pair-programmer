@@ -21,6 +21,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
     "@anthropic-ai/sdk": "^0.40.0",
     "@octokit/rest": "^21.1.1",
     "dotenv": "^16.3.1",
