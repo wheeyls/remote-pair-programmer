@@ -124,6 +124,43 @@ To add your secrets to GitHub Actions:
 
 *Either `openai-api-key` or `anthropic-api-key` is required depending on which provider you use.
 
+## File Context Directives
+
+The AI agent can access additional files beyond those changed in the PR by using file context directives in your comments. This helps the AI understand more of your codebase to make better suggestions.
+
+### New Format (Recommended)
+
+```
+/add path/to/file.js src/**/*.js
+/ignore node_modules/ dist/
+```
+
+### Legacy Format
+
+```
+.add-files
+- path/to/file.js
+- src/**/*.js
+
+.ignore
+- node_modules/
+- dist/
+```
+
+### Directive Types
+
+- `/add` or `.add-files`: Specify additional files or glob patterns to include
+- `/ignore` or `.ignore`: Specify files or directories to exclude
+
+### Usage Tips
+
+- Use glob patterns to include multiple files (e.g., `src/**/*.js` for all JavaScript files in the src directory)
+- Add trailing slashes to directory names to ignore entire directories (e.g., `node_modules/`)
+- The AI will have access to:
+  1. Files changed in the PR
+  2. Files specified in add directives
+  3. Any additional context files provided by the action configuration
+
 ## Examples
 
 ### PR Comments
@@ -133,13 +170,8 @@ Comment on a PR with:
 ```
 @github-ai-bot implement a function that sorts this array
 
-.add-files
-- src/utils/*.js
-- src/components/
-
-.ignore
-- node_modules/
-- dist/
+/add src/utils/*.js src/components/
+/ignore node_modules/ dist/
 ```
 
 The agent will:
@@ -159,9 +191,7 @@ Body:
 Please implement pagination for the user list component.
 We should show 10 users per page and add next/previous buttons.
 
-.add-files
-- src/components/UserList.js
-- src/styles/pagination.css
+/add src/components/UserList.js src/styles/pagination.css
 ```
 
 The agent will:

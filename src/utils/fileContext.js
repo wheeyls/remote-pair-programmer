@@ -43,13 +43,34 @@ function extractFileDirectives(text) {
     ignoreFiles: [],
   };
 
+  // Extract /add commands
+  const addMatches = text.matchAll(/^\/add\s+(.+?)$/gm);
+  for (const match of addMatches) {
+    if (match[1]) {
+      // Split by whitespace to get individual files/patterns
+      const files = match[1].trim().split(/\s+/);
+      result.addFiles.push(...files);
+    }
+  }
+
+  // Extract /ignore commands
+  const ignoreMatches = text.matchAll(/^\/ignore\s+(.+?)$/gm);
+  for (const match of ignoreMatches) {
+    if (match[1]) {
+      // Split by whitespace to get individual files/patterns
+      const files = match[1].trim().split(/\s+/);
+      result.ignoreFiles.push(...files);
+    }
+  }
+
+  // For backward compatibility, also check for old directive format
   // Extract .add-files directive
   const addFilesMatch = text.match(/\.add-files\s+((?:-\s+[^\n]+\s*)+)/);
   if (addFilesMatch && addFilesMatch[1]) {
     const addFilesList = addFilesMatch[1].match(/-\s+([^\n]+)/g);
     if (addFilesList) {
-      result.addFiles = addFilesList.map((item) =>
-        item.replace(/^-\s+/, '').trim()
+      result.addFiles.push(
+        ...addFilesList.map((item) => item.replace(/^-\s+/, '').trim())
       );
     }
   }
@@ -59,8 +80,8 @@ function extractFileDirectives(text) {
   if (ignoreFilesMatch && ignoreFilesMatch[1]) {
     const ignoreFilesList = ignoreFilesMatch[1].match(/-\s+([^\n]+)/g);
     if (ignoreFilesList) {
-      result.ignoreFiles = ignoreFilesList.map((item) =>
-        item.replace(/^-\s+/, '').trim()
+      result.ignoreFiles.push(
+        ...ignoreFilesList.map((item) => item.replace(/^-\s+/, '').trim())
       );
     }
   }
