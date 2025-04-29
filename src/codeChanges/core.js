@@ -173,12 +173,12 @@ async function modifyCode({
 
     // Sanitize the commit message for command line safety
     commitMessage = sanitizeForShell(commitMessage);
-    
-    if (fs.existsSync('.lintstagedrc.yml')) {
-      console.log("Found .lintstagedrc.yml, running lint-staged...");
+
+    if (fs.existsSync('.lintstagedrc.*')) {
+      console.log('Found .lintstagedrc.yml, running lint-staged...');
       execSync('npx lint-staged', { stdio: 'inherit' });
     }
-    
+
     git.addAll();
     git.commit(`${commitMessage}\n\nRequested by comment on PR #${prNumber}`);
 
