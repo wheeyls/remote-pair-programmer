@@ -10,7 +10,7 @@ export const config = {
   // AI Configuration
   ai: {
     provider: process.env.AI_PROVIDER || 'openai',
-    apiKey: process.env.AI_API_KEY || process.env.OPENAI_API_KEY,
+    openaiApiKey: process.env.OPENAI_API_KEY,
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     model: process.env.AI_MODEL,
     strongModel: process.env.STRONG_AI_MODEL,

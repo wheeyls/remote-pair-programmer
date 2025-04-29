@@ -27,7 +27,7 @@ export function initializeHandler(deps = {}) {
       apiKey:
         conf.ai.provider === 'anthropic'
           ? conf.ai.anthropicApiKey
-          : conf.ai.apiKey,
+          : conf.ai.openaiApiKey,
       model: conf.ai.model || 'gpt-4',
       strongModel: conf.ai.strongModel,
       weakModel: conf.ai.weakModel,

@@ -15,11 +15,11 @@ describe('Handler', () => {
     config = {
       ai: {
         provider: 'openai',
-        apiKey: 'test-api-key',
+        openaiApiKey: 'test-api-key',
+        anthropicApiKey: 'test-anthropic-key',
         model: 'gpt-4',
         strongModel: 'gpt-4',
         weakModel: 'gpt-3.5-turbo',
-        triggerPhrase: '@test-bot',
       },
       queue: {
         serviceUrl: 'http://localhost:0', // Will be replaced with actual port

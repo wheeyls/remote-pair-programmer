@@ -22,7 +22,7 @@ async function run() {
     // Override AI configuration
     actionConfig.ai = {
       ...actionConfig.ai,
-      apiKey: openaiApiKey || actionConfig.ai.apiKey,
+      openaiApiKey: openaiApiKey || actionConfig.ai.openaiApiKey,
       anthropicApiKey: anthropicApiKey || actionConfig.ai.anthropicApiKey,
       model: model || actionConfig.ai.model,
       strongModel: strongModel || actionConfig.ai.strongModel,
