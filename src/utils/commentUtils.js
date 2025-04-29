@@ -48,9 +48,7 @@ async function addIssueComment({
       });
     } else {
       // For regular issue/PR comments
-      const finalBody = quote_reply_to
-        ? `> ${quote_reply_to}\n\n${messageWithIgnore}`
-        : messageWithIgnore;
+      const finalBody = messageWithIgnore;
 
       return await octokit.issues.createComment({
         owner,
