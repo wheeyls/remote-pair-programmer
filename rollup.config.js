@@ -10,7 +10,6 @@ export default {
     sourcemap: false,
     inlineDynamicImports: true,
   },
-  external: ['@actions/core', '@actions/github'],
   plugins: [
     nodeResolve({
       preferBuiltins: true,
