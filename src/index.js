@@ -1,6 +1,6 @@
-import { AIClient } from './aiClient.js';
+// This file now serves as the main entry point for the worker functionality
 import { createQueue } from './utils/queueFactory.js';
-
+import { AIClient } from './aiClient.js';
 import { config } from './config.js';
 
 // Import command modules
@@ -12,13 +12,13 @@ import processReviewComment from './commands/processReviewComment.js';
 import processRevert from './commands/processRevert.js';
 
 /**
- * Initialize the handler with all dependencies
+ * Initialize the worker handler with all dependencies
  * @param {Object} deps - Optional dependencies to inject
  * @param {AIClient} deps.aiClient - AIClient instance
- * @param {Queue} deps.queue - Queue instance
+ * @param {WorkerQueue} deps.queue - WorkerQueue instance
  * @returns {Object} The initialized handler with queue and AI client
  */
-export function initializeHandler(deps = {}) {
+export function initializeWorker(deps = {}) {
   // Use injected dependencies or create new instances
   const conf = deps.config || config;
   const aiClient =
@@ -76,45 +76,4 @@ export function initializeHandler(deps = {}) {
     queue,
     TRIGGER_PHRASE,
   };
-}
-
-/**
- * Run the handler with the specified command
- * @param {string} command - The command to run
- * @param {Object} deps - Optional dependencies to inject
- * @returns {Promise<any>} - Result of the command execution
- */
-export async function runHandler(command, deps = {}) {
-  const conf = deps.config || config;
-  const { queue } = initializeHandler(deps);
-
-  const owner = conf.actions.repoOwner;
-  const repo = conf.actions.repoName;
-  const prNumber = conf.actions.prNumber;
-  const commentId = conf.actions.commentId;
-
-  if (command === 'process-issue') {
-    const issueNumber = prNumber;
-
-    return queue.enqueue(command, { owner, repo, issueNumber });
-  } else if (command === 'process-issue-comment') {
-    const issueNumber = prNumber;
-
-    return queue.enqueue(command, { owner, repo, issueNumber, commentId });
-  } else if (command === 'process-comment') {
-    // For comments on PRs, we use prNumber as the issue_number
-    // GitHub's API treats PR numbers and issue numbers as the same namespace
-    return queue.enqueue(command, { owner, repo, prNumber, commentId });
-  } else if (command === 'process-review-comment') {
-    return queue.enqueue(command, { owner, repo, prNumber, commentId });
-  } else if (command === 'process-pr') {
-    return queue.enqueue(command, { owner, repo, prNumber });
-  } else if (command === 'process-revert') {
-    return queue.enqueue(command, { owner, repo, prNumber, commentId });
-  } else {
-    console.error(
-      'Invalid command. Use: process-pr, process-comment, process-issue, process-issue-comment, process-review-comment, or process-revert'
-    );
-    process.exit(1);
-  }
 }

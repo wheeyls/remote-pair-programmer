@@ -1,46 +1,21 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import { runHandler } from './index.js';
+import { enqueueJob } from './jobEnqueuer.js';
 import { config } from './config.js';
 
 async function run() {
   try {
     // Get inputs from GitHub Actions
-    const openaiApiKey = core.getInput('openai-api-key');
-    const anthropicApiKey = core.getInput('anthropic-api-key');
-    const model = core.getInput('model');
-    const strongModel = core.getInput('strong-model');
-    const weakModel = core.getInput('weak-model');
-    const triggerPhrase = core.getInput('trigger-phrase');
-    const aiProvider = core.getInput('ai-provider');
     const queueServiceUrl = core.getInput('queue-service-url');
     const queueAuthToken = core.getInput('queue-auth-token');
 
     // Create a copy of the config and override with GitHub Actions inputs
     const actionConfig = { ...config };
 
-    // Override AI configuration
-    actionConfig.ai = {
-      ...actionConfig.ai,
-      openaiApiKey: openaiApiKey || actionConfig.ai.openaiApiKey,
-      anthropicApiKey: anthropicApiKey || actionConfig.ai.anthropicApiKey,
-      model: model || actionConfig.ai.model,
-      strongModel: strongModel || actionConfig.ai.strongModel,
-      weakModel: weakModel || actionConfig.ai.weakModel,
-      provider: aiProvider || actionConfig.ai.provider,
-    };
-
-    // Override queue configuration
     actionConfig.queue = {
       ...actionConfig.queue,
       serviceUrl: queueServiceUrl || actionConfig.queue.serviceUrl,
       authToken: queueAuthToken || actionConfig.queue.authToken,
-    };
-
-    // Override bot configuration
-    actionConfig.bot = {
-      ...actionConfig.bot,
-      triggerPhrase: triggerPhrase || actionConfig.bot.triggerPhrase,
     };
 
     // Override GitHub configuration
@@ -84,8 +59,10 @@ async function run() {
       command = 'process-comment';
     }
 
-    // Run the handler with the determined command and config
-    await runHandler(command, { config: actionConfig });
+    // Enqueue the job with the determined command and config
+    await enqueueJob(command, { config: actionConfig });
+    
+    core.info(`Successfully enqueued ${command} job`);
   } catch (error) {
     core.setFailed(error.message);
   }

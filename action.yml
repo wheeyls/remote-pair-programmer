@@ -7,32 +7,6 @@ branding:
   color: 'blue'
 
 inputs:
-  openai-api-key:
-    description: 'API key for OpenAI or Sonnet'
-    required: false
-  anthropic-api-key:
-    description: 'API key for Anthropic'
-    required: false
-  model:
-    description: 'Default AI model to use'
-    required: false
-    default: 'gpt-4'
-  strong-model:
-    description: 'Strong AI model to use for complex tasks'
-    required: false
-    default: ''
-  weak-model:
-    description: 'Weak AI model to use for simple tasks'
-    required: false
-    default: ''
-  trigger-phrase:
-    description: 'Phrase to trigger the agent'
-    required: false
-    default: '@github-ai-bot'
-  ai-provider:
-    description: 'AI provider to use (openai, sonnet, or anthropic)'
-    required: false
-    default: 'openai'
   queue-service-url:
     description: 'Web service URL for queue operations'
     required: true

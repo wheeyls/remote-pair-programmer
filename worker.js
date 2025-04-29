@@ -1,5 +1,8 @@
 import dotenv from 'dotenv';
-import { initializeHandler } from './src/index.js';
+import { initializeWorker } from './src/index.js';
+
+// Set environment to worker mode
+process.env.NODE_ENV = 'worker';
 
 // Load environment variables
 dotenv.config({ path: '.env' });
@@ -8,8 +11,8 @@ dotenv.config({ path: '.env.local', override: true });
 async function startWorker() {
   console.log('Starting queue worker...');
 
-  // Initialize the handler which sets up the queue and registers handlers
-  const { queue } = initializeHandler();
+  // Initialize the worker which sets up the queue and registers handlers
+  const { queue } = initializeWorker();
 
   console.log(`Worker connected to web service queue: ${queue.name}`);
   console.log('Waiting for jobs...');

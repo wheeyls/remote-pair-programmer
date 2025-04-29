@@ -1,241 +1,71 @@
 import { jest } from '@jest/globals';
-import { initializeHandler, runHandler } from '../src/index.js';
-import http from 'http';
+import { initializeWorker } from '../src/index.js';
 
-describe('Handler', () => {
-  let server;
-  let serverPort;
-  let requestLog = [];
-  let responseToSend = { status: 200, body: null };
+describe('Worker', () => {
   let mockAIClient;
+  let mockQueue;
   let config;
 
-  // Set up a test HTTP server to intercept requests
-  beforeAll((done) => {
+  beforeEach(() => {
+    // Create mock AI client for dependency injection
+    mockAIClient = {
+      generateCompletion: jest.fn().mockResolvedValue('Test response'),
+    };
+
+    // Create mock queue for dependency injection
+    mockQueue = {
+      name: 'test-queue',
+      registerHandler: jest.fn(),
+    };
+
+    // Create test config
     config = {
       ai: {
         provider: 'openai',
-        openaiApiKey: 'test-api-key',
-        anthropicApiKey: 'test-anthropic-key',
+        apiKey: 'test-api-key',
         model: 'gpt-4',
         strongModel: 'gpt-4',
         weakModel: 'gpt-3.5-turbo',
       },
       queue: {
-        serviceUrl: 'http://localhost:0', // Will be replaced with actual port
+        serviceUrl: 'http://localhost:3000',
         authToken: 'test-token',
-      },
-      actions: {
-        repoOwner: 'test-owner',
-        repoName: 'test-repo',
-        prNumber: '123',
-        commentId: '456',
       },
       bot: {
         triggerPhrase: '@test-bot',
       },
     };
-    server = http.createServer((req, res) => {
-      let body = '';
-      req.on('data', (chunk) => {
-        body += chunk.toString();
-      });
-
-      req.on('end', () => {
-        // Log the request for assertions
-        requestLog.push({
-          method: req.method,
-          url: req.url,
-          headers: req.headers,
-          body: body ? JSON.parse(body) : null,
-        });
-
-        // Send the configured response
-        res.statusCode = responseToSend.status;
-        res.setHeader('Content-Type', 'application/json');
-
-        if (responseToSend.body) {
-          res.end(JSON.stringify(responseToSend.body));
-        } else {
-          res.end();
-        }
-      });
-    });
-
-    // Start server on a random port
-    server.listen(0, () => {
-      serverPort = server.address().port;
-      // Update the config to use our test server
-      config.queue.serviceUrl = `http://localhost:${serverPort}`;
-      done();
-    });
   });
 
-  afterAll((done) => {
-    server.close(done);
-  });
-
-  beforeEach(() => {
-    // Reset request log and default response
-    requestLog = [];
-    responseToSend = { status: 200, body: null };
-
-    // Create mock AI client for dependency injection
-    mockAIClient = {
-      generateCompletion: jest.fn().mockResolvedValue('Test response'),
-    };
-  });
-
-  test('processes pull request command correctly', async () => {
-    // Run the handler with the PR command
-    await runHandler('process-pr', {
+  test('initializes worker with correct dependencies', () => {
+    // Initialize the worker with mocked dependencies
+    const result = initializeWorker({
       aiClient: mockAIClient,
+      queue: mockQueue,
       config: config,
     });
 
-    // Check if the correct request was made to the queue service
-    expect(requestLog.length).toBe(1);
-    expect(requestLog[0].method).toBe('POST');
-    expect(requestLog[0].url).toBe('/');
-    expect(requestLog[0].headers['content-type']).toBe('application/json');
-    expect(requestLog[0].headers['x-api-token']).toBe('test-token');
-    expect(requestLog[0].body).toEqual({
-      name: 'process-pr',
-      body: {
-        owner: 'test-owner',
-        repo: 'test-repo',
-        prNumber: '123',
-      },
-    });
+    // Check if the worker was initialized correctly
+    expect(result.aiClient).toBe(mockAIClient);
+    expect(result.queue).toBe(mockQueue);
+    expect(result.TRIGGER_PHRASE).toBe('@test-bot');
   });
 
-  test('processes comment command correctly', async () => {
-    // Run the handler with the comment command
-    await runHandler('process-comment', {
+  test('registers all command handlers', () => {
+    // Initialize the worker with mocked dependencies
+    initializeWorker({
       aiClient: mockAIClient,
+      queue: mockQueue,
       config: config,
     });
 
-    // Check if the correct request was made to the queue service
-    expect(requestLog.length).toBe(1);
-    expect(requestLog[0].method).toBe('POST');
-    expect(requestLog[0].body).toEqual({
-      name: 'process-comment',
-      body: {
-        owner: 'test-owner',
-        repo: 'test-repo',
-        prNumber: '123',
-        commentId: '456',
-      },
-    });
-  });
-
-  test('processes issue command correctly', async () => {
-    // Run the handler with the issue command
-    await runHandler('process-issue', {
-      aiClient: mockAIClient,
-      config: config,
-    });
-
-    // Check if the correct request was made to the queue service
-    expect(requestLog.length).toBe(1);
-    expect(requestLog[0].method).toBe('POST');
-    expect(requestLog[0].body).toEqual({
-      name: 'process-issue',
-      body: {
-        owner: 'test-owner',
-        repo: 'test-repo',
-        issueNumber: '123',
-      },
-    });
-  });
-
-  test('processes issue comment command correctly', async () => {
-    // Run the handler with the issue comment command
-    await runHandler('process-issue-comment', {
-      aiClient: mockAIClient,
-      config: config,
-    });
-
-    // Check if the correct request was made to the queue service
-    expect(requestLog.length).toBe(1);
-    expect(requestLog[0].method).toBe('POST');
-    expect(requestLog[0].body).toEqual({
-      name: 'process-issue-comment',
-      body: {
-        owner: 'test-owner',
-        repo: 'test-repo',
-        issueNumber: '123',
-        commentId: '456',
-      },
-    });
-  });
-
-  test('processes review comment command correctly', async () => {
-    // Run the handler with the review comment command
-    await runHandler('process-review-comment', {
-      aiClient: mockAIClient,
-      config: config,
-    });
-
-    // Check if the correct request was made to the queue service
-    expect(requestLog.length).toBe(1);
-    expect(requestLog[0].method).toBe('POST');
-    expect(requestLog[0].body).toEqual({
-      name: 'process-review-comment',
-      body: {
-        owner: 'test-owner',
-        repo: 'test-repo',
-        prNumber: '123',
-        commentId: '456',
-      },
-    });
-  });
-
-  test('processes revert command correctly', async () => {
-    // Run the handler with the revert command
-    await runHandler('process-revert', {
-      aiClient: mockAIClient,
-      config: config,
-    });
-
-    // Check if the correct request was made to the queue service
-    expect(requestLog.length).toBe(1);
-    expect(requestLog[0].method).toBe('POST');
-    expect(requestLog[0].body).toEqual({
-      name: 'process-revert',
-      body: {
-        owner: 'test-owner',
-        repo: 'test-repo',
-        prNumber: '123',
-        commentId: '456',
-      },
-    });
-  });
-
-  test('exits with error for invalid command', async () => {
-    // Mock process.exit
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {});
-
-    // Mock console.error
-    const consoleErrorSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
-
-    // Run the handler with an invalid command
-    await runHandler('invalid-command', {
-      aiClient: mockAIClient,
-      config: config,
-    });
-
-    // Check if error was logged and process.exit was called
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Invalid command')
-    );
-    expect(mockExit).toHaveBeenCalledWith(1);
-
-    // Restore mocks
-    mockExit.mockRestore();
-    consoleErrorSpy.mockRestore();
+    // Check if all handlers were registered
+    expect(mockQueue.registerHandler).toHaveBeenCalledTimes(6);
+    expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-pr', expect.any(Function));
+    expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-comment', expect.any(Function));
+    expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-issue', expect.any(Function));
+    expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-issue-comment', expect.any(Function));
+    expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-review-comment', expect.any(Function));
+    expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-revert', expect.any(Function));
   });
 });
