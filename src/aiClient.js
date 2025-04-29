@@ -84,7 +84,7 @@ export class AIClient {
     console.log('AI Request:', {
       provider: this.provider,
       model,
-      modelStrength
+      modelStrength,
     });
 
     try {

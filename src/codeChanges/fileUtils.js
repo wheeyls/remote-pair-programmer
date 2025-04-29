@@ -132,7 +132,7 @@ Please provide corrected search/replace blocks for these files.`;
       aiClient,
       contextContent
     );
-    
+
     const retryBlocks = retryResponse.changes;
 
     if (retryBlocks.length === 0) {

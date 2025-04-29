@@ -14,12 +14,12 @@ export function createQueue(options = {}) {
   if (!baseUrl) {
     throw new Error('Base URL is required for web service queue');
   }
-  
+
   const authToken = options.authToken || config.queue.authToken;
-  
+
   return new WebServiceQueue({
     name: options.name || 'default',
     baseUrl,
-    authToken
+    authToken,
   });
 }

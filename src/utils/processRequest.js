@@ -17,11 +17,17 @@ import addIssueComment from './commentUtils.js';
  * @returns {Promise<Object>} - Result of processing the request
  */
 async function processRequest(params) {
-  const { aiClient, triggerPhrase, requestText, context, octokit, codeModifier } = params;
+  const {
+    aiClient,
+    triggerPhrase,
+    requestText,
+    context,
+    octokit,
+    codeModifier,
+  } = params;
   const { owner, repo, prNumber } = context;
 
   const modifyCode = codeModifier || defaultCodeModifier;
-
 
   // Check if this is a bot message or should be ignored
   if (requestText.includes('bot:ignore')) {
@@ -46,12 +52,12 @@ async function processRequest(params) {
         repo,
         prNumber,
         requestText,
-        aiClient
+        aiClient,
       });
 
       let responseBody;
       if (result.success) {
-        responseBody = `✅ I've made the requested changes and pushed them to this PR.\n\n**Changes made:**\n${result.explanation}\n\n**Modified files:**\n${result.changedFiles.map(f => `- \`${f}\``).join('\n')}`;
+        responseBody = `✅ I've made the requested changes and pushed them to this PR.\n\n**Changes made:**\n${result.explanation}\n\n**Modified files:**\n${result.changedFiles.map((f) => `- \`${f}\``).join('\n')}`;
       } else {
         responseBody = `❌ I encountered an error while trying to modify the code:\n\`\`\`\n${result.error}\n\`\`\`\n\nPlease provide more details or try a different request.`;
       }
@@ -63,7 +69,7 @@ async function processRequest(params) {
         repo,
         issue_number: prNumber,
         body: responseBody,
-        quote_reply_to: requestText
+        quote_reply_to: requestText,
       });
 
       return { success: true, isCodeMod: true, response: responseBody };
@@ -72,8 +78,8 @@ async function processRequest(params) {
         aiClient,
         {
           comment: requestText,
-          context: `PR #${prNumber}`
-        }, 
+          context: `PR #${prNumber}`,
+        },
         'COMMENT_RESPONSE',
         'strong'
       );
@@ -84,7 +90,7 @@ async function processRequest(params) {
         owner,
         repo,
         issue_number: prNumber,
-        body: aiResponse
+        body: aiResponse,
       });
 
       return { success: true, isCodeMod: false, response: aiResponse };
@@ -96,7 +102,7 @@ async function processRequest(params) {
       octokit,
       owner,
       repo,
-      issueNumber: prNumber
+      issueNumber: prNumber,
     });
 
     return { success: false, error: error.message };
@@ -106,13 +112,18 @@ async function processRequest(params) {
 /**
  * Generate an AI response
  */
-async function generateAIResponse(aiClient, context, promptType = 'COMMENT_RESPONSE', modelStrength = 'strong') {
+async function generateAIResponse(
+  aiClient,
+  context,
+  promptType = 'COMMENT_RESPONSE',
+  modelStrength = 'strong'
+) {
   try {
     return await aiClient.generateCompletion({
       prompt: PROMPTS[promptType],
       context: context,
       modelStrength: modelStrength,
-      temperature: 0.7
+      temperature: 0.7,
     });
   } catch (error) {
     console.error('Error generating AI response:', error);

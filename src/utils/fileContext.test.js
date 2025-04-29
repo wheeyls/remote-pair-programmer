@@ -5,7 +5,7 @@ import {
   resolveGlobs,
   applyIgnorePatterns,
   getFileContents,
-  processFileContext
+  processFileContext,
 } from './fileContext';
 
 // Mock dependencies
@@ -43,7 +43,8 @@ describe('fileContext', () => {
     });
 
     it('should handle multiple directives', () => {
-      const text = 'Some text\n/add file1.js\n/add file2.js\n/ignore node_modules/\nMore text';
+      const text =
+        'Some text\n/add file1.js\n/add file2.js\n/ignore node_modules/\nMore text';
       const result = extractFileDirectives(text);
       expect(result.addFiles).toEqual(['file1.js', 'file2.js']);
       expect(result.ignoreFiles).toEqual(['node_modules/']);
@@ -67,7 +68,7 @@ describe('fileContext', () => {
 
       const patterns = ['src/**/*.js', 'test/*.js'];
       const result = resolveGlobs(patterns);
-      
+
       expect(result).toEqual(['src/file1.js', 'src/file2.js', 'test/test1.js']);
       expect(glob.sync).toHaveBeenCalledTimes(2);
     });
@@ -80,7 +81,7 @@ describe('fileContext', () => {
 
       const patterns = ['src/'];
       const result = resolveGlobs(patterns);
-      
+
       expect(result).toEqual(['src/file1.js', 'src/file2.js']);
       expect(glob.sync).toHaveBeenCalledWith('src/**/*', { nodir: true });
     });
@@ -94,18 +95,20 @@ describe('fileContext', () => {
 
       const patterns = ['src/**/*.js', '*.js'];
       const result = resolveGlobs(patterns);
-      
+
       expect(result).toEqual(['src/file1.js', 'src/file2.js', 'file3.js']);
     });
 
     it('should handle errors and continue processing', () => {
-      glob.sync.mockImplementationOnce(() => {
-        throw new Error('Glob error');
-      }).mockImplementationOnce(() => ['test/test1.js']);
+      glob.sync
+        .mockImplementationOnce(() => {
+          throw new Error('Glob error');
+        })
+        .mockImplementationOnce(() => ['test/test1.js']);
 
       const patterns = ['src/**/*.js', 'test/*.js'];
       const result = resolveGlobs(patterns);
-      
+
       expect(result).toEqual(['test/test1.js']);
       expect(glob.sync).toHaveBeenCalledTimes(2);
     });
@@ -126,12 +129,12 @@ describe('fileContext', () => {
         'src/file1.js',
         'node_modules/file1.js',
         'dist/bundle.js',
-        'file1.test.js'
+        'file1.test.js',
       ];
       const ignorePatterns = ['node_modules/', 'dist/', '*.test.js'];
-      
+
       const result = applyIgnorePatterns(files, ignorePatterns);
-      
+
       expect(result).toEqual(['src/file1.js']);
     });
 
@@ -139,18 +142,18 @@ describe('fileContext', () => {
       const files = [
         'src/file1.js',
         'node_modules/file1.js',
-        'node_modules/subdir/file2.js'
+        'node_modules/subdir/file2.js',
       ];
       const ignorePatterns = ['node_modules/'];
-      
+
       const result = applyIgnorePatterns(files, ignorePatterns);
-      
+
       expect(result).toEqual(['src/file1.js']);
     });
 
     it('should return all files when no ignore patterns are provided', () => {
       const files = ['src/file1.js', 'src/file2.js'];
-      
+
       expect(applyIgnorePatterns(files, [])).toEqual(files);
       expect(applyIgnorePatterns(files, null)).toEqual(files);
     });
@@ -168,10 +171,10 @@ describe('fileContext', () => {
     it('should read contents of specified files', () => {
       const files = ['src/file1.js', 'src/file2.js'];
       const result = getFileContents(files);
-      
+
       expect(result).toEqual({
         'src/file1.js': 'content of file1',
-        'src/file2.js': 'content of file2'
+        'src/file2.js': 'content of file2',
       });
       expect(fs.readFileSync).toHaveBeenCalledTimes(2);
     });
@@ -179,9 +182,9 @@ describe('fileContext', () => {
     it('should handle errors when reading files', () => {
       const files = ['src/file1.js', 'nonexistent.js'];
       const result = getFileContents(files);
-      
+
       expect(result).toEqual({
-        'src/file1.js': 'content of file1'
+        'src/file1.js': 'content of file1',
       });
       expect(fs.readFileSync).toHaveBeenCalledTimes(2);
     });
@@ -208,24 +211,24 @@ describe('fileContext', () => {
     it('should process file context with directives', () => {
       const text = '/add src/**/*.js\n/ignore node_modules/';
       const additionalFiles = ['additional.js'];
-      
+
       const result = processFileContext({ text, additionalFiles });
-      
+
       expect(result).toEqual({
         'src/file1.js': 'content of file1',
         'src/file2.js': 'content of file2',
-        'additional.js': 'additional content'
+        'additional.js': 'additional content',
       });
     });
 
     it('should handle empty directives', () => {
       const text = 'No directives here';
       const additionalFiles = ['additional.js'];
-      
+
       const result = processFileContext({ text, additionalFiles });
-      
+
       expect(result).toEqual({
-        'additional.js': 'additional content'
+        'additional.js': 'additional content',
       });
     });
   });

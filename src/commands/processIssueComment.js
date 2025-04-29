@@ -66,7 +66,7 @@ async function processIssueComment(aiClient, triggerPhrase, payload) {
           .map((f) => `- \`${f}\``)
           .join(
             '\n'
-          )}\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${owner}/${repo}/compare/${baseBranch}...${result.branchName}?expand=1`
+          )}\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${owner}/${repo}/compare/${baseBranch}...${result.branchName}?expand=1`,
       });
     }
   } catch (error) {

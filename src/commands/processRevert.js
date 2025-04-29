@@ -26,9 +26,9 @@ async function processRevert(aiClient, triggerPhrase, payload) {
       repo,
       comment_id: commentId,
     });
-    
+
     const commentBody = comment.body;
-    
+
     // Check if the comment is a revert request
     const revertTrigger = `${triggerPhrase} bot:revert`;
     if (commentBody.trim() !== revertTrigger) {
@@ -60,10 +60,10 @@ async function processRevert(aiClient, triggerPhrase, payload) {
 
       // Clone the repository with depth 2 to ensure we have enough history for the revert
       git.clone(repoUrl, branchName, '.', { depth: 2 });
-      
+
       // Revert the last commit using the GitClient
       const lastCommitMsg = git.revertLastCommit({ fetchMoreHistory: true });
-      
+
       // Push the changes
       git.push(repoUrl, branchName);
 
@@ -73,9 +73,8 @@ async function processRevert(aiClient, triggerPhrase, payload) {
         owner,
         repo,
         issue_number: prNumber,
-        body: `✅ Successfully reverted the previous commit: "${lastCommitMsg}"`
+        body: `✅ Successfully reverted the previous commit: "${lastCommitMsg}"`,
       });
-
     } catch (error) {
       console.error('Error during revert operation:', error);
       await addIssueComment({
@@ -83,12 +82,12 @@ async function processRevert(aiClient, triggerPhrase, payload) {
         owner,
         repo,
         issue_number: prNumber,
-        body: `❌ Failed to revert the previous commit: ${error.message}`
+        body: `❌ Failed to revert the previous commit: ${error.message}`,
       });
     } finally {
       // Change back to the original directory
       process.chdir(originalDir);
-      
+
       // Clean up the temporary directory
       try {
         fs.rmSync(tempDir, { recursive: true, force: true });
@@ -104,7 +103,7 @@ async function processRevert(aiClient, triggerPhrase, payload) {
       owner,
       repo,
       issueNumber: prNumber,
-      commentBody
+      commentBody,
     });
   }
 }

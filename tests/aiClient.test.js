@@ -7,12 +7,12 @@ describe('AIClient', () => {
   test('initializes with the correct provider', () => {
     const openaiClient = new AIClient({
       apiKey: 'test-key',
-      provider: 'openai'
+      provider: 'openai',
     });
 
     const anthropicClient = new AIClient({
       apiKey: 'test-key',
-      provider: 'anthropic'
+      provider: 'anthropic',
     });
 
     expect(openaiClient.provider).toBe('openai');
@@ -23,7 +23,7 @@ describe('AIClient', () => {
     expect(() => {
       new AIClient({
         apiKey: 'test-key',
-        provider: 'unsupported'
+        provider: 'unsupported',
       });
     }).toThrow('Unsupported AI provider');
   });
@@ -31,7 +31,7 @@ describe('AIClient', () => {
   test('has strong and weak models', () => {
     const client = new AIClient({
       apiKey: 'test-key',
-      provider: 'openai'
+      provider: 'openai',
     });
 
     expect(client.models).toHaveProperty('strong');
@@ -43,7 +43,7 @@ describe('AIClient', () => {
       apiKey: 'test-key',
       provider: 'openai',
       strongModel: 'custom-strong',
-      weakModel: 'custom-weak'
+      weakModel: 'custom-weak',
     });
 
     expect(client.models.strong).toBe('custom-strong');

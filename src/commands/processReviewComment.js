@@ -71,7 +71,7 @@ async function processReviewComment(aiClient, triggerPhrase, payload) {
       repo,
       issueNumber: prNumber,
       commentId,
-      isReviewComment: true
+      isReviewComment: true,
     });
   }
 }

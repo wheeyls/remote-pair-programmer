@@ -103,7 +103,7 @@ describe('WebServiceQueue', () => {
     expect(requestLog[0].headers['content-type']).toBe('application/json');
     expect(requestLog[0].body).toEqual({
       name: 'test-command',
-      body: { data: 'test-data' }
+      body: { data: 'test-data' },
     });
   });
 

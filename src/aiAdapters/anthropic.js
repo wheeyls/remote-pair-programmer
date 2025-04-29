@@ -58,33 +58,33 @@ export class AnthropicAdapter extends BaseAdapter {
         // Add JSON schema tool
         anthropicOptions.tools = [
           {
-            name: "json_response",
-            description: "Generate a structured JSON response",
+            name: 'json_response',
+            description: 'Generate a structured JSON response',
             input_schema: {
-              type: "object",
+              type: 'object',
               properties: {
                 response: {
-                  type: "object",
-                  description: "The JSON response object"
-                }
+                  type: 'object',
+                  description: 'The JSON response object',
+                },
               },
-              required: ["response"]
-            }
-          }
+              required: ['response'],
+            },
+          },
         ];
-        
+
         // Set tool choice to force using the JSON tool
         anthropicOptions.tool_choice = {
-          type: "tool",
-          name: "json_response"
+          type: 'tool',
+          name: 'json_response',
         };
       }
 
       const completion = await this.client.messages.create(anthropicOptions);
-      
+
       // Convert Anthropic response to OpenAI-like format for compatibility
       let content = '';
-      
+
       // Check if we have tool use in the response (for JSON responses)
       if (completion.content && Array.isArray(completion.content)) {
         for (const block of completion.content) {
@@ -125,4 +125,3 @@ export class AnthropicAdapter extends BaseAdapter {
     };
   }
 }
-

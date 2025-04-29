@@ -88,26 +88,26 @@ class GitClient {
    */
   revertLastCommit(options = {}) {
     const { fetchMoreHistory = false } = options;
-    
+
     // Configure user before reverting
     this.configureUser(
       'GitHub AI Actions',
       'github-actions[bot]@users.noreply.github.com'
     );
-    
+
     // Get the last commit message for the revert commit message
     const lastCommitMsg = execSync('git log -1 --pretty=%B').toString().trim();
-    
+
     // If fetchMoreHistory is true, deepen the clone to ensure we have enough history
     if (fetchMoreHistory) {
       console.log('Fetching more history to support revert...');
       execSync('git fetch --deepen=1');
     }
-    
+
     // Revert the last commit
     console.log('Reverting the last commit...');
     execSync('git revert HEAD --no-edit');
-    
+
     return lastCommitMsg;
   }
 

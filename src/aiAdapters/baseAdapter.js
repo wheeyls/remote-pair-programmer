@@ -9,9 +9,11 @@ export class BaseAdapter {
    */
   constructor(options) {
     if (this.constructor === BaseAdapter) {
-      throw new Error('BaseAdapter is an abstract class and cannot be instantiated directly');
+      throw new Error(
+        'BaseAdapter is an abstract class and cannot be instantiated directly'
+      );
     }
-    
+
     this.apiKey = options.apiKey;
   }
 
@@ -25,7 +27,9 @@ export class BaseAdapter {
    * @returns {Promise<Object>} - The generated completion
    */
   async createChatCompletion(options) {
-    throw new Error('Method createChatCompletion must be implemented by subclasses');
+    throw new Error(
+      'Method createChatCompletion must be implemented by subclasses'
+    );
   }
 
   /**
@@ -33,7 +37,8 @@ export class BaseAdapter {
    * @returns {Object} - Object with 'strong' and 'weak' model identifiers
    */
   getDefaultModels() {
-    throw new Error('Method getDefaultModels must be implemented by subclasses');
+    throw new Error(
+      'Method getDefaultModels must be implemented by subclasses'
+    );
   }
 }
-

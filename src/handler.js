@@ -15,10 +15,10 @@ async function run() {
     const aiProvider = core.getInput('ai-provider');
     const queueServiceUrl = core.getInput('queue-service-url');
     const queueAuthToken = core.getInput('queue-auth-token');
-    
+
     // Create a copy of the config and override with GitHub Actions inputs
     const actionConfig = { ...config };
-    
+
     // Override AI configuration
     actionConfig.ai = {
       ...actionConfig.ai,
@@ -29,43 +29,44 @@ async function run() {
       weakModel: weakModel || actionConfig.ai.weakModel,
       provider: aiProvider || actionConfig.ai.provider,
     };
-    
+
     // Override queue configuration
     actionConfig.queue = {
       ...actionConfig.queue,
       serviceUrl: queueServiceUrl || actionConfig.queue.serviceUrl,
       authToken: queueAuthToken || actionConfig.queue.authToken,
     };
-    
+
     // Override bot configuration
     actionConfig.bot = {
       ...actionConfig.bot,
       triggerPhrase: triggerPhrase || actionConfig.bot.triggerPhrase,
     };
-    
+
     // Override GitHub configuration
     actionConfig.github = {
       ...actionConfig.github,
       token: process.env.GITHUB_TOKEN || actionConfig.github.token,
     };
-    
+
     const eventName = process.env.GITHUB_EVENT_NAME;
     const eventPayload = github.context.payload;
-    
+
     // Set all action config properties up front
     actionConfig.actions = {
       ...actionConfig.actions,
       repoOwner: github.context.repo.owner,
       repoName: github.context.repo.repo,
-      prNumber: eventPayload.pull_request?.number?.toString() || 
-                eventPayload.issue?.number?.toString() || 
-                actionConfig.actions.prNumber,
-      commentId: eventPayload.comment?.id?.toString() || 
-                 actionConfig.actions.commentId
+      prNumber:
+        eventPayload.pull_request?.number?.toString() ||
+        eventPayload.issue?.number?.toString() ||
+        actionConfig.actions.prNumber,
+      commentId:
+        eventPayload.comment?.id?.toString() || actionConfig.actions.commentId,
     };
-    
+
     let command;
-    
+
     // Determine which command to run based on the event type
     if (eventName === 'pull_request') {
       command = 'process-pr';
@@ -82,15 +83,14 @@ async function run() {
     } else {
       command = 'process-comment';
     }
-    
+
     // Run the handler with the determined command and config
     await runHandler(command, { config: actionConfig });
-    
   } catch (error) {
     core.setFailed(error.message);
   }
 }
 
-run().catch(error => {
+run().catch((error) => {
   core.setFailed(`Action failed with error: ${error}`);
 });

@@ -65,11 +65,13 @@ export class WebServiceQueue {
     const response = await fetch(this.baseUrl, {
       method: 'POST',
       headers,
-      body: JSON.stringify(job)
+      body: JSON.stringify(job),
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to enqueue job: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to enqueue job: ${response.status} ${response.statusText}`
+      );
     }
 
     return job.id;
@@ -104,7 +106,7 @@ export class WebServiceQueue {
   async processNextJob() {
     // Get the next job from the queue
     const headers = {
-      'Accept': 'application/json',
+      Accept: 'application/json',
     };
 
     // Add API token header if token is provided
@@ -114,15 +116,20 @@ export class WebServiceQueue {
 
     const response = await fetch(`${this.baseUrl}/next`, {
       method: 'GET',
-      headers
+      headers,
     });
 
     if (!response.ok && response.status !== 404) {
-      throw new Error(`Failed to get next job: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to get next job: ${response.status} ${response.statusText}`
+      );
     }
 
     // If no jobs (404) or empty response
-    if (response.status === 404 || response.headers.get('content-length') === '0') {
+    if (
+      response.status === 404 ||
+      response.headers.get('content-length') === '0'
+    ) {
       return null;
     }
 
@@ -154,15 +161,15 @@ export class WebServiceQueue {
         body: JSON.stringify({
           job,
           result,
-          completedAt: new Date().toISOString()
-        })
+          completedAt: new Date().toISOString(),
+        }),
       });
 
       return { job, result };
     } catch (error) {
       console.error('Error processing job:', error);
       console.error('Error details:', error.stack);
-      
+
       if (error.response) {
         console.error('Response status:', error.response.status);
         console.error('Response data:', error.response.data);
@@ -185,8 +192,8 @@ export class WebServiceQueue {
           body: JSON.stringify({
             job: jobData,
             error: error.message,
-            failedAt: new Date().toISOString()
-          })
+            failedAt: new Date().toISOString(),
+          }),
         });
       }
 

@@ -22,13 +22,13 @@ async function handleError({
   issueNumber,
   commentId,
   commentBody,
-  isReviewComment = false
+  isReviewComment = false,
 }) {
   console.error('Error processing request:', error);
   const safeErrorMessage = protectSensitiveData(error.message);
 
   const errorMessage = `❌ I encountered an error while processing your request:\n\`\`\`\n${safeErrorMessage}\n\`\`\`\n\nPlease try again or rephrase your request.`;
-  
+
   try {
     await addIssueComment({
       octokit,
@@ -38,7 +38,7 @@ async function handleError({
       issue_number: issueNumber,
       comment_id: commentId,
       body: errorMessage,
-      quote_reply_to: commentBody
+      quote_reply_to: commentBody,
     });
   } catch (commentError) {
     // If commenting fails, log the error but don't throw

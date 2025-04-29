@@ -22,13 +22,20 @@ async function processComment(aiClient, triggerPhrase, payload) {
       repo,
       comment_id: commentId,
     });
-    
+
     const commentBody = comment.body;
 
     // Check if this is a revert request
     if (commentBody.trim() === `${triggerPhrase} bot:revert`) {
-      console.log('Detected revert request, calling process-revert handler directly');
-      return processRevert(aiClient, triggerPhrase, { owner, repo, prNumber, commentId });
+      console.log(
+        'Detected revert request, calling process-revert handler directly'
+      );
+      return processRevert(aiClient, triggerPhrase, {
+        owner,
+        repo,
+        prNumber,
+        commentId,
+      });
     }
 
     // Get PR details to provide context
@@ -68,7 +75,7 @@ async function processComment(aiClient, triggerPhrase, payload) {
       octokit,
       owner,
       repo,
-      issueNumber: prNumber
+      issueNumber: prNumber,
     });
   }
 }
