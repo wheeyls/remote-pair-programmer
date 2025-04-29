@@ -2,10 +2,11 @@ import { Octokit } from '@octokit/rest';
 import processRequest from '../utils/processRequest.js';
 import handleError from '../utils/errorHandler.js';
 import addIssueComment from '../utils/commentUtils.js';
+import { config } from '../config.js';
 
 // Initialize GitHub API client
 const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
+  auth: config.github.token,
 });
 
 /**

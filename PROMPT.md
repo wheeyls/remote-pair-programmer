@@ -1,15 +1,18 @@
-I use aider every day in my command line. The behavior is simple enough:
+Coding conventions:
 
-I ask for changes.
-Aider commits code.
-I review the changes.
-I might make a few edits.
-Aider applies changes based on my feedback.
+JavaScript
 
-I want this moved into the cloud. I want to be on my phone, look at my github repo, and add a comment to a PR from where I am. I put my phone away and check later, and see the progress made my an AI coding agent.
+* Use ES6+ syntax
+* import/export syntax, no commonjs
 
-Let's move this into the cloud.
+AB Tests
 
-This directory is the beginning of that journey. It is a simple github action that will listen to comments on PRs, and and add it's own comments.
-
-Let's update the functionality so that it can actually commit code and push it to the PR.
+* Avoid excessive mocking, in favor of dependency injection and real tests.
+* Use Jest conventions for test files
+* Prefer fewer tests, with less focus on implementation details
+  * Don't mock out dependencies unless absolutely necessary
+* Prefer hard-coding expectations to using code to generate the answer
+* There are old tests that heavily favor mocks, they should be refactored out when possible
+* We have process.env calls to check for variables
+  * Those should be heavily discouraged in favor of option passing from index.js or worker.js
+  * Once we leave the outermost edges of the app, we shouldn't know that ENV is a thing

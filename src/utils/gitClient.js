@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import { config } from '../config.js';
 
 /**
  * A utility class for Git operations
@@ -6,9 +7,9 @@ import { execSync } from 'child_process';
 class GitClient {
   /**
    * Create a new GitClient
-   * @param {string} token - GitHub token for authentication (defaults to GITHUB_TOKEN env variable)
+   * @param {string} token - GitHub token for authentication (defaults to config.github.token)
    */
-  constructor(token = process.env.GITHUB_TOKEN) {
+  constructor(token = config.github.token) {
     this.token = token;
   }
 

@@ -1,4 +1,5 @@
 import { Octokit } from '@octokit/rest';
+import { config } from '../config.js';
 
 /**
  * Shared utility for creating GitHub comments
@@ -23,18 +24,18 @@ async function addIssueComment({
   pr_number,
   comment_id,
   body,
-  quote_reply_to
+  quote_reply_to,
 }) {
   // Initialize Octokit if not provided
   if (!octokit) {
     octokit = new Octokit({
-      auth: process.env.GITHUB_TOKEN,
+      auth: config.github.token,
     });
   }
 
   // Add bot:ignore directive to prevent the bot from responding to its own messages
   const messageWithIgnore = body + '\n\nbot:ignore';
-  
+
   try {
     if (type === 'pull' && comment_id) {
       // Reply to a review comment
@@ -47,10 +48,10 @@ async function addIssueComment({
       });
     } else {
       // For regular issue/PR comments
-      const finalBody = quote_reply_to 
+      const finalBody = quote_reply_to
         ? `> ${quote_reply_to}\n\n${messageWithIgnore}`
         : messageWithIgnore;
-        
+
       return await octokit.issues.createComment({
         owner,
         repo,

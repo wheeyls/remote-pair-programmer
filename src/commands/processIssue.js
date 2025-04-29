@@ -3,10 +3,11 @@ import { execSync } from 'child_process';
 import { modifyCode } from '../codeChanges.js';
 import handleError from '../utils/errorHandler.js';
 import addIssueComment from '../utils/commentUtils.js';
+import { config } from '../config.js';
 
 // Initialize GitHub API client
 const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
+  auth: config.github.token,
 });
 
 /**
@@ -42,7 +43,7 @@ async function processIssue(aiClient, triggerPhrase, payload) {
       owner,
       repo,
       issue_number: issueNumber,
-      body: `I'm processing your request to make code changes. I'll convert this issue into a PR shortly.`
+      body: `I'm processing your request to make code changes. I'll convert this issue into a PR shortly.`,
     });
 
     // Create a new branch for the changes
@@ -90,7 +91,7 @@ async function processIssue(aiClient, triggerPhrase, payload) {
         owner,
         repo,
         issue_number: issueNumber,
-        body: `❌ I encountered an error while trying to make the requested changes:\n\`\`\`\n${result.error}\n\`\`\`\n\nPlease provide more details or try a different request.`
+        body: `❌ I encountered an error while trying to make the requested changes:\n\`\`\`\n${result.error}\n\`\`\`\n\nPlease provide more details or try a different request.`,
       });
       return;
     }
@@ -110,7 +111,7 @@ async function processIssue(aiClient, triggerPhrase, payload) {
         .map((f) => `- \`${f}\``)
         .join(
           '\n'
-        )}\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${owner}/${repo}/compare/${baseBranch}...${newBranch}?expand=1`
+        )}\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${owner}/${repo}/compare/${baseBranch}...${newBranch}?expand=1`,
     });
   } catch (error) {
     await handleError({
@@ -118,7 +119,7 @@ async function processIssue(aiClient, triggerPhrase, payload) {
       octokit,
       owner,
       repo,
-      issueNumber
+      issueNumber,
     });
   }
 }

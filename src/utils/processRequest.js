@@ -1,4 +1,4 @@
-import { modifyCode } from '../codeChanges.js';
+import { modifyCode as defaultCodeModifier } from '../codeChanges/index.js';
 import PROMPTS from '../prompts.js';
 import handleError from './errorHandler.js';
 import addIssueComment from './commentUtils.js';
@@ -17,8 +17,10 @@ import addIssueComment from './commentUtils.js';
  * @returns {Promise<Object>} - Result of processing the request
  */
 async function processRequest(params) {
-  const { aiClient, triggerPhrase, requestText, context, octokit } = params;
+  const { aiClient, triggerPhrase, requestText, context, octokit, codeModifier } = params;
   const { owner, repo, prNumber } = context;
+
+  const modifyCode = codeModifier || defaultCodeModifier;
 
 
   // Check if this is a bot message or should be ignored

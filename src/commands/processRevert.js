@@ -6,10 +6,11 @@ import os from 'os';
 import handleError from '../utils/errorHandler.js';
 import addIssueComment from '../utils/commentUtils.js';
 import GitClient from '../utils/gitClient.js';
+import { config } from '../config.js';
 
 // Initialize GitHub API client
 const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
+  auth: config.github.token,
 });
 
 /**
@@ -55,7 +56,7 @@ async function processRevert(aiClient, triggerPhrase, payload) {
       console.log(`Created temporary directory: ${tempDir}`);
 
       // Initialize Git client
-      const git = new GitClient(process.env.GITHUB_TOKEN);
+      const git = new GitClient(config.github.token);
 
       // Clone the repository with depth 2 to ensure we have enough history for the revert
       git.clone(repoUrl, branchName, '.', { depth: 2 });

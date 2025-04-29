@@ -7,6 +7,7 @@ import GitClient from '../utils/gitClient.js';
 import { isPullRequest } from './prUtils.js';
 import { requestCodeChanges, getRefinedExplanation } from './aiUtils.js';
 import { applyPatches, sanitizeForShell } from './fileUtils.js';
+import { config } from '../config.js';
 
 /**
  * Analyzes a request to modify code and makes the requested changes
@@ -52,11 +53,11 @@ async function modifyCode({
     octokit =
       octokit ||
       new Octokit({
-        auth: process.env.GITHUB_TOKEN,
+        auth: config.github.token,
       });
 
     // Initialize Git client with GitHub token
-    git = git || new GitClient(process.env.GITHUB_TOKEN);
+    git = git || new GitClient(config.github.token);
 
     let files = [];
     let branch = '';
