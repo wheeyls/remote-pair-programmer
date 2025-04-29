@@ -1,10 +1,11 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { runHandler } from './index.js';
+import { config } from './config.js';
 
 async function run() {
   try {
-    // Get inputs
+    // Get inputs from GitHub Actions
     const openaiApiKey = core.getInput('openai-api-key');
     const anthropicApiKey = core.getInput('anthropic-api-key');
     const model = core.getInput('model');
@@ -14,20 +15,39 @@ async function run() {
     const aiProvider = core.getInput('ai-provider');
     const queueServiceUrl = core.getInput('queue-service-url');
     const queueAuthToken = core.getInput('queue-auth-token');
-
-    // Set environment variables
-    process.env.AI_API_KEY = openaiApiKey;
-    process.env.ANTHROPIC_API_KEY = anthropicApiKey;
-    process.env.AI_MODEL = model;
-    process.env.STRONG_AI_MODEL = strongModel;
-    process.env.WEAK_AI_MODEL = weakModel;
-    process.env.TRIGGER_PHRASE = triggerPhrase;
-    process.env.AI_PROVIDER = aiProvider;
-    process.env.QUEUE_SERVICE_URL = queueServiceUrl;
-    process.env.QUEUE_AUTH_TOKEN = queueAuthToken;
     
-    // Set GitHub-related environment variables
-    process.env.GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+    // Create a copy of the config and override with GitHub Actions inputs
+    const actionConfig = { ...config };
+    
+    // Override AI configuration
+    actionConfig.ai = {
+      ...actionConfig.ai,
+      apiKey: openaiApiKey || actionConfig.ai.apiKey,
+      anthropicApiKey: anthropicApiKey || actionConfig.ai.anthropicApiKey,
+      model: model || actionConfig.ai.model,
+      strongModel: strongModel || actionConfig.ai.strongModel,
+      weakModel: weakModel || actionConfig.ai.weakModel,
+      provider: aiProvider || actionConfig.ai.provider,
+    };
+    
+    // Override queue configuration
+    actionConfig.queue = {
+      ...actionConfig.queue,
+      serviceUrl: queueServiceUrl || actionConfig.queue.serviceUrl,
+      authToken: queueAuthToken || actionConfig.queue.authToken,
+    };
+    
+    // Override bot configuration
+    actionConfig.bot = {
+      ...actionConfig.bot,
+      triggerPhrase: triggerPhrase || actionConfig.bot.triggerPhrase,
+    };
+    
+    // Override GitHub configuration
+    actionConfig.github = {
+      ...actionConfig.github,
+      token: process.env.GITHUB_TOKEN || actionConfig.github.token,
+    };
     
     const eventName = process.env.GITHUB_EVENT_NAME;
     const eventPayload = github.context.payload;
@@ -37,33 +57,48 @@ async function run() {
     // Determine which command to run based on the event type
     if (eventName === 'pull_request') {
       command = 'process-pr';
-      process.env.PR_NUMBER = eventPayload.pull_request.number.toString();
+      actionConfig.actions = {
+        ...actionConfig.actions,
+        repoOwner: github.context.repo.owner,
+        repoName: github.context.repo.repo,
+        prNumber: eventPayload.pull_request.number.toString(),
+      };
     } else if (eventName === 'issues') {
       command = 'process-issue';
-      process.env.PR_NUMBER = eventPayload.issue.number.toString();
+      actionConfig.actions = {
+        ...actionConfig.actions,
+        repoOwner: github.context.repo.owner,
+        repoName: github.context.repo.repo,
+        prNumber: eventPayload.issue.number.toString(),
+      };
     } else if (eventName === 'issue_comment') {
       if (eventPayload.issue.pull_request) {
         command = 'process-comment';
       } else {
         command = 'process-issue-comment';
       }
-      process.env.PR_NUMBER = eventPayload.issue.number.toString();
-      process.env.COMMENT_ID = eventPayload.comment.id.toString();
-      process.env.COMMENT_BODY = eventPayload.comment.body;
+      actionConfig.actions = {
+        ...actionConfig.actions,
+        repoOwner: github.context.repo.owner,
+        repoName: github.context.repo.repo,
+        prNumber: eventPayload.issue.number.toString(),
+        commentId: eventPayload.comment.id.toString(),
+      };
     } else if (eventName === 'pull_request_review_comment') {
       command = 'process-review-comment';
-      process.env.PR_NUMBER = eventPayload.pull_request.number.toString();
-      process.env.COMMENT_ID = eventPayload.comment.id.toString();
-      process.env.COMMENT_BODY = eventPayload.comment.body;
+      actionConfig.actions = {
+        ...actionConfig.actions,
+        repoOwner: github.context.repo.owner,
+        repoName: github.context.repo.repo,
+        prNumber: eventPayload.pull_request.number.toString(),
+        commentId: eventPayload.comment.id.toString(),
+      };
     } else {
       command = 'process-comment';
     }
     
-    process.env.REPO_OWNER = github.context.repo.owner;
-    process.env.REPO_NAME = github.context.repo.repo;
-    
-    // Run the handler with the determined command
-    await runHandler(command);
+    // Run the handler with the determined command and config
+    await runHandler(command, { config: actionConfig });
     
   } catch (error) {
     core.setFailed(error.message);
