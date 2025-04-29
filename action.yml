@@ -42,4 +42,4 @@ inputs:
 
 runs:
   using: 'node20'
-  main: 'src/handler.js'
+  main: 'dist/index.js'
