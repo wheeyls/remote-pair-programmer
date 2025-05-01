@@ -233,22 +233,39 @@ class PRHelper {
     });
   }
 
-  async addReaction() {
+  /**
+   * Add a reaction to the PR/issue or comment
+   * @param {Object} options - Reaction options
+   * @param {string} [options.content='rocket'] - Reaction content (emoji name)
+   * @returns {Promise<void>}
+   */
+  async addReaction({ content = 'rocket' } = {}) {
     try {
-      // Add a light-bulb reaction to indicate the bot has started work
-      if (this.issueCommentId) {
+      // If we have a review comment ID, add reaction to the review comment
+      if (this.reviewCommentId) {
+        await this.octokit.reactions.createForPullRequestReviewComment({
+          owner: this.owner,
+          repo: this.repo,
+          comment_id: this.reviewCommentId,
+          content,
+        });
+      }
+      // If we have an issue comment ID, add reaction to the issue comment
+      else if (this.issueCommentId) {
         await this.octokit.reactions.createForIssueComment({
           owner: this.owner,
           repo: this.repo,
           comment_id: this.issueCommentId,
-          content: 'rocket',
+          content,
         });
-      } else {
+      } 
+      // Otherwise add reaction to the issue/PR itself
+      else {
         await this.octokit.reactions.createForIssue({
           owner: this.owner,
           repo: this.repo,
           issue_number: this.prNumber,
-          content: 'rocket',
+          content,
         });
       }
     } catch (err) {
