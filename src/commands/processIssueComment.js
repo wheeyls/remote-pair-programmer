@@ -1,19 +1,15 @@
-import { Octokit } from '@octokit/rest';
+import { getOctokit } from '../providers/octokitProvider.js';
 import processRequest from '../utils/processRequest.js';
 import handleError from '../utils/errorHandler.js';
 import addIssueComment from '../utils/commentUtils.js';
 import { config } from '../config.js';
-
-// Initialize GitHub API client
-const octokit = new Octokit({
-  auth: config.github.token,
-});
 
 /**
  * Process a comment on a GitHub issue
  */
 async function processIssueComment(aiClient, triggerPhrase, payload) {
   const { commentId, issueNumber, owner, repo } = payload;
+  const octokit = getOctokit();
 
   try {
     // Get the comment text from GitHub API

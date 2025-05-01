@@ -4,6 +4,7 @@ import handleError from './errorHandler.js';
 import addIssueComment from './commentUtils.js';
 import { ContextContent } from '../codeChanges/ContextContent.js';
 import { PRHelper } from '../github/prHelper.js';
+import { getOctokit } from '../providers/octokitProvider.js';
 
 /**
  * Process a request from a PR or comment
@@ -15,20 +16,14 @@ import { PRHelper } from '../github/prHelper.js';
  * @param {string} params.context.owner - Repository owner
  * @param {string} params.context.repo - Repository name
  * @param {number} params.context.prNumber - PR number
- * @param {Object} params.octokit - Octokit instance
  * @returns {Promise<Object>} - Result of processing the request
  */
 async function processRequest(params) {
-  const {
-    aiClient,
-    triggerPhrase,
-    requestText,
-    context,
-    octokit,
-    codeModifier,
-  } = params;
+  const { aiClient, triggerPhrase, requestText, context, codeModifier } =
+    params;
   const { owner, repo, prNumber } = context;
 
+  const octokit = getOctokit();
   const modifyCode = codeModifier || defaultCodeModifier;
   const pr = new PRHelper({ octokit, owner, repo, prNumber });
 
@@ -51,20 +46,19 @@ async function processRequest(params) {
     if (!isArchitectureRequest) {
       // Get PR context
       const prContext = await pr.toContext();
-      
+
       // Log the fileNames property to debug
       console.log('PR context fileNames:', JSON.stringify(prContext.fileNames));
-      
+
       // Make sure fileNames is a proper array
       if (!prContext.fileNames || !Array.isArray(prContext.fileNames)) {
-        console.log('PR context fileNames is not an array, setting to empty array');
+        console.log(
+          'PR context fileNames is not an array, setting to empty array'
+        );
         prContext.fileNames = [];
       }
-      
-      const contextContent = new ContextContent(
-        requestText,
-        prContext
-      );
+
+      const contextContent = new ContextContent(requestText, prContext);
 
       const result = await modifyCode({
         prHelper: pr,
@@ -127,6 +121,7 @@ async function processRequest(params) {
       issueNumber: prNumber,
     });
 
+    throw error;
     return { success: false, error: error.message };
   }
 }

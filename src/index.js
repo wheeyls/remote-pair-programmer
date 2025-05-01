@@ -2,6 +2,8 @@
 import { createQueue } from './utils/queueFactory.js';
 import { AIClient } from './aiClient.js';
 import { config } from './config.js';
+import { setOctokit } from './providers/octokitProvider.js';
+import { Octokit } from '@octokit/rest';
 
 // Import command modules
 import processPullRequest from './commands/processPullRequest.js';
@@ -43,32 +45,50 @@ export function initializeWorker(deps = {}) {
       authToken: conf.queue.authToken,
     });
 
+  const octokit =
+    deps.octokit ||
+    new Octokit({
+      auth: conf.github.token,
+    });
+
   // Get trigger phrase from environment or use default
   const TRIGGER_PHRASE = conf.bot.triggerPhrase;
 
   // Register command handlers
   queue.registerHandler('process-pr', async (payload) => {
-    return processPullRequest(aiClient, TRIGGER_PHRASE, payload);
+    return await setOctokit(octokit, async () =>
+      processPullRequest(aiClient, TRIGGER_PHRASE, payload)
+    );
   });
 
   queue.registerHandler('process-comment', async (payload) => {
-    return processComment(aiClient, TRIGGER_PHRASE, payload);
+    return await setOctokit(octokit, async () =>
+      processComment(aiClient, TRIGGER_PHRASE, payload)
+    );
   });
 
   queue.registerHandler('process-issue', async (payload) => {
-    return processIssue(aiClient, TRIGGER_PHRASE, payload);
+    return await setOctokit(octokit, async () =>
+      processIssue(aiClient, TRIGGER_PHRASE, payload)
+    );
   });
 
   queue.registerHandler('process-issue-comment', async (payload) => {
-    return processIssueComment(aiClient, TRIGGER_PHRASE, payload);
+    return await setOctokit(octokit, async () =>
+      processIssueComment(aiClient, TRIGGER_PHRASE, payload)
+    );
   });
 
   queue.registerHandler('process-review-comment', async (payload) => {
-    return processReviewComment(aiClient, TRIGGER_PHRASE, payload);
+    return await setOctokit(octokit, async () =>
+      processReviewComment(aiClient, TRIGGER_PHRASE, payload)
+    );
   });
 
   queue.registerHandler('process-revert', async (payload) => {
-    return processRevert(aiClient, TRIGGER_PHRASE, payload);
+    return await setOctokit(octokit, async () =>
+      processRevert(aiClient, TRIGGER_PHRASE, payload)
+    );
   });
 
   return {

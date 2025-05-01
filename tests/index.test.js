@@ -27,6 +27,9 @@ describe('Worker', () => {
         strongModel: 'gpt-4',
         weakModel: 'gpt-3.5-turbo',
       },
+      github: {
+        token: 'test-github-token',
+      },
       queue: {
         serviceUrl: 'http://localhost:3000',
         authToken: 'test-token',
@@ -61,11 +64,29 @@ describe('Worker', () => {
 
     // Check if all handlers were registered
     expect(mockQueue.registerHandler).toHaveBeenCalledTimes(6);
-    expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-pr', expect.any(Function));
-    expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-comment', expect.any(Function));
-    expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-issue', expect.any(Function));
-    expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-issue-comment', expect.any(Function));
-    expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-review-comment', expect.any(Function));
-    expect(mockQueue.registerHandler).toHaveBeenCalledWith('process-revert', expect.any(Function));
+    expect(mockQueue.registerHandler).toHaveBeenCalledWith(
+      'process-pr',
+      expect.any(Function)
+    );
+    expect(mockQueue.registerHandler).toHaveBeenCalledWith(
+      'process-comment',
+      expect.any(Function)
+    );
+    expect(mockQueue.registerHandler).toHaveBeenCalledWith(
+      'process-issue',
+      expect.any(Function)
+    );
+    expect(mockQueue.registerHandler).toHaveBeenCalledWith(
+      'process-issue-comment',
+      expect.any(Function)
+    );
+    expect(mockQueue.registerHandler).toHaveBeenCalledWith(
+      'process-review-comment',
+      expect.any(Function)
+    );
+    expect(mockQueue.registerHandler).toHaveBeenCalledWith(
+      'process-revert',
+      expect.any(Function)
+    );
   });
 });

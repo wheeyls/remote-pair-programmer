@@ -1,4 +1,4 @@
-import { Octokit } from '@octokit/rest';
+import { getOctokit } from '../providers/octokitProvider.js';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
@@ -8,16 +8,12 @@ import addIssueComment from '../utils/commentUtils.js';
 import GitClient from '../utils/gitClient.js';
 import { config } from '../config.js';
 
-// Initialize GitHub API client
-const octokit = new Octokit({
-  auth: config.github.token,
-});
-
 /**
  * Process a revert request on a GitHub PR
  */
 async function processRevert(aiClient, triggerPhrase, payload) {
   const { prNumber, owner, repo, commentId } = payload;
+  const octokit = getOctokit();
 
   try {
     // Get the comment text from GitHub API

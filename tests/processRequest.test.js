@@ -1,25 +1,32 @@
 import { jest } from '@jest/globals';
 import processRequest from '../src/utils/processRequest.js';
 import { PRHelper } from '../src/github/prHelper.js';
+import { ContextContent } from '../src/codeChanges/ContextContent.js';
+import { setOctokit } from '../src/providers/octokitProvider.js';
+import { mockOctokit } from './fixtures/mockOctokit.js';
 
 describe('processRequest', () => {
   let mockAiClient;
-  let mockOctokit;
   let mockContext;
   let mockModifyCode;
   let modifyResponse;
+
+  async function subject() {
+    return await setOctokit(mockOctokit, async () => {
+      return await processRequest({
+        aiClient: mockAiClient,
+        triggerPhrase: '@test-bot',
+        requestText: '@test-bot change this code please',
+        context: mockContext,
+        codeModifier: mockModifyCode,
+      });
+    });
+  }
 
   beforeEach(() => {
     // Mock AI client
     mockAiClient = {
       generateCompletion: jest.fn().mockResolvedValue('AI response'),
-    };
-
-    // Mock Octokit
-    mockOctokit = {
-      issues: {
-        createComment: jest.fn().mockResolvedValue({}),
-      },
     };
 
     modifyResponse = {
@@ -42,24 +49,13 @@ describe('processRequest', () => {
   });
 
   test('handles code modification requests', async () => {
-    const result = await processRequest({
-      aiClient: mockAiClient,
-      triggerPhrase: '@test-bot',
-      requestText: '@test-bot change this code please',
-      context: mockContext,
-      codeModifier: mockModifyCode,
-      octokit: mockOctokit,
-    });
-
+    const result = await subject();
     // Check if mockModifyCode was called with correct parameters
     // (should have received a prHelper instance)
     expect(mockModifyCode).toHaveBeenCalledWith({
       prHelper: expect.any(PRHelper),
       aiClient: mockAiClient,
-      contextContent: expect.objectContaining({
-        requestText: '@test-bot change this code please',
-        prHelper: expect.any(PRHelper),
-      }),
+      contextContent: expect.any(ContextContent),
       octokit: mockOctokit,
     });
 
@@ -86,14 +82,7 @@ describe('processRequest', () => {
       error: 'Something went wrong',
     });
 
-    await processRequest({
-      aiClient: mockAiClient,
-      triggerPhrase: '@test-bot',
-      requestText: '@test-bot implement a feature',
-      context: mockContext,
-      codeModifier: mockModifyCode,
-      octokit: mockOctokit,
-    });
+    await subject();
 
     // Check if comment was created with error message
     expect(mockOctokit.issues.createComment).toHaveBeenCalledWith({

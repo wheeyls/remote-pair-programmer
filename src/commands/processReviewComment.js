@@ -1,18 +1,14 @@
-import { Octokit } from '@octokit/rest';
+import { getOctokit } from '../providers/octokitProvider.js';
 import processRequest from '../utils/processRequest.js';
 import handleError from '../utils/errorHandler.js';
 import { config } from '../config.js';
-
-// Initialize GitHub API client
-const octokit = new Octokit({
-  auth: config.github.token,
-});
 
 /**
  * Process a review comment on a specific line in a GitHub PR
  */
 async function processReviewComment(aiClient, triggerPhrase, payload) {
   const { commentId, prNumber, owner, repo } = payload;
+  const octokit = getOctokit();
 
   try {
     // Get PR details to provide context

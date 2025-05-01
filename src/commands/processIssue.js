@@ -1,20 +1,16 @@
-import { Octokit } from '@octokit/rest';
+import { getOctokit } from '../providers/octokitProvider.js';
 import { execSync } from 'child_process';
 import { modifyCode } from '../codeChanges.js';
 import handleError from '../utils/errorHandler.js';
 import addIssueComment from '../utils/commentUtils.js';
 import { config } from '../config.js';
 
-// Initialize GitHub API client
-const octokit = new Octokit({
-  auth: config.github.token,
-});
-
 /**
  * Process a GitHub issue and convert it to a PR with code changes
  */
 async function processIssue(aiClient, triggerPhrase, payload) {
   const { issueNumber, owner, repo } = payload;
+  const octokit = getOctokit();
 
   try {
     // Get issue details

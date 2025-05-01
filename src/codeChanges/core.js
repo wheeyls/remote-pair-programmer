@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { Octokit } from '@octokit/rest';
+import { getOctokit } from '../providers/octokitProvider.js';
 import { processFileContext } from '../utils/fileContext.js';
 import GitClient from '../utils/gitClient.js';
 import { requestCodeChanges, getRefinedExplanation } from './aiUtils.js';
@@ -63,11 +63,7 @@ async function modifyCode({
     console.log(`Created temporary directory: ${tempDir}`);
 
     // Initialize GitHub API client
-    octokit =
-      octokit ||
-      new Octokit({
-        auth: config.github.token,
-      });
+    octokit = octokit || getOctokit();
 
     // Initialize Git client with GitHub token
     git = git || new GitClient(config.github.token);

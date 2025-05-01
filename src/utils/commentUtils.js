@@ -1,4 +1,4 @@
-import { Octokit } from '@octokit/rest';
+import { getOctokit } from '../providers/octokitProvider.js';
 import { config } from '../config.js';
 
 /**
@@ -28,9 +28,7 @@ async function addIssueComment({
 }) {
   // Initialize Octokit if not provided
   if (!octokit) {
-    octokit = new Octokit({
-      auth: config.github.token,
-    });
+    octokit = getOctokit();
   }
 
   // Add bot:ignore directive to prevent the bot from responding to its own messages

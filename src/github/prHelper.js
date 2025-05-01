@@ -1,8 +1,8 @@
-import { Octokit } from '@octokit/rest';
+import { getOctokit } from '../providers/octokitProvider.js';
 
 class PRHelper {
   constructor({ octokit, owner, repo, prNumber }) {
-    this.octokit = octokit;
+    this.octokit = octokit || getOctokit();
     this.owner = owner;
     this.repo = repo;
     this.prNumber = prNumber;
@@ -15,7 +15,9 @@ class PRHelper {
     const isPR = await this.isPR();
 
     // Extract just the filenames from the files array
-    const fileNames = files.map(file => file.filename).filter(name => typeof name === 'string');
+    const fileNames = files
+      .map((file) => file.filename)
+      .filter((name) => typeof name === 'string');
 
     return {
       prNumber: this.prNumber,
