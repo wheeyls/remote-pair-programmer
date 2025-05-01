@@ -14,7 +14,7 @@ class ContextContent {
 
     const all = processFileContext({
       text: this.requestText,
-      additionalFiles: this.prContext.files,
+      additionalFiles: this.prContext.fileNames || [],
     });
 
     return (this.available = Object.keys(all || {}));

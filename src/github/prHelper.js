@@ -14,6 +14,9 @@ class PRHelper {
     const comments = await this.getComments();
     const isPR = await this.isPR();
 
+    // Extract just the filenames from the files array
+    const fileNames = files.map(file => file.filename).filter(name => typeof name === 'string');
+
     return {
       prNumber: this.prNumber,
       owner: this.owner,
@@ -22,6 +25,7 @@ class PRHelper {
       title: prDetails.title,
       isPR,
       files,
+      fileNames, // Add the array of just filenames
       comments,
     };
   }

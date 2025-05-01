@@ -49,26 +49,16 @@ async function processRequest(params) {
     const isArchitectureRequest = requestText.includes('architect');
 
     if (!isArchitectureRequest) {
-      // Get PR context and ensure files property is an array of strings
+      // Get PR context
       const prContext = await pr.toContext();
       
-      // Log the files property to debug
-      console.log('PR context files before processing:', JSON.stringify(prContext.files));
+      // Log the fileNames property to debug
+      console.log('PR context fileNames:', JSON.stringify(prContext.fileNames));
       
-      // Make sure files is a proper array of strings
-      if (!prContext.files || !Array.isArray(prContext.files)) {
-        console.log('PR context files is not an array, setting to empty array');
-        prContext.files = [];
-      } else {
-        // Filter out non-string values
-        prContext.files = prContext.files.filter(file => {
-          const isString = typeof file === 'string';
-          if (!isString) {
-            console.log('Found non-string file entry:', file);
-          }
-          return isString;
-        });
-        console.log('PR context files after processing:', JSON.stringify(prContext.files));
+      // Make sure fileNames is a proper array
+      if (!prContext.fileNames || !Array.isArray(prContext.fileNames)) {
+        console.log('PR context fileNames is not an array, setting to empty array');
+        prContext.fileNames = [];
       }
       
       const contextContent = new ContextContent(

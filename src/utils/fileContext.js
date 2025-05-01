@@ -177,8 +177,13 @@ function processFileContext({ text, additionalFiles = [], baseFilesFn = baseFile
   // Resolve add-files globs
   const directiveFiles = resolveGlobs(directives.addFiles);
 
+  // Ensure additionalFiles contains only strings
+  const validAdditionalFiles = Array.isArray(additionalFiles) 
+    ? additionalFiles.filter(file => typeof file === 'string')
+    : [];
+
   // Combine base files with additional files
-  let allFiles = [...baseFilesFn(), ...additionalFiles, ...directiveFiles];
+  let allFiles = [...baseFilesFn(), ...validAdditionalFiles, ...directiveFiles];
 
   // Apply ignore patterns
   allFiles = applyIgnorePatterns(allFiles, directives.ignoreFiles);
