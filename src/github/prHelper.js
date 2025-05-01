@@ -2,12 +2,13 @@ import { getOctokit } from '../providers/octokitProvider.js';
 import addIssueComment from '../utils/commentUtils.js';
 
 class PRHelper {
-  constructor({ octokit, owner, repo, prNumber, reviewCommentId }) {
+  constructor({ octokit, owner, repo, prNumber, reviewCommentId, issueCommentId }) {
     this.octokit = octokit || getOctokit();
     this.owner = owner;
     this.repo = repo;
     this.prNumber = prNumber;
     this.reviewCommentId = reviewCommentId;
+    this.issueCommentId = issueCommentId;
   }
 
   async toContext() {
@@ -235,11 +236,11 @@ class PRHelper {
   async addReaction() {
     try {
       // Add a light-bulb reaction to indicate the bot has started work
-      if (this.reviewCommentId) {
+      if (this.issueCommentId) {
         await this.octokit.reactions.createForIssueComment({
           owner: this.owner,
           repo: this.repo,
-          comment_id: this.reviewCommentId,
+          comment_id: this.issueCommentId,
           content: 'rocket',
         });
       } else {
