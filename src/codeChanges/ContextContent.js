@@ -29,10 +29,37 @@ class ContextContent {
       'Comment snippets:',
       this.prContext.comments.map((c) => c.body?.substring(0, 50)).join('\n')
     );
-    console.log('Diff snippet:', this.prContext.diff ? this.prContext.diff.substring(0, 50) : 'No diff available');
+    console.log(
+      'Diff snippet:',
+      this.prContext.diff
+        ? this.prContext.diff.substring(0, 50)
+        : 'No diff available'
+    );
+    console.log(
+      'Review comment snippet:',
+      this.reviewComment().substring(0, 50)
+    );
     console.log('***********************************');
 
-    return `${this.requestCopy()}\n\n${this.fileCopy()}${this.diff()}`;
+    return `${this.requestCopy()}\n\n${this.fileCopy()}${this.diff()}${this.reviewComment()}`;
+  }
+
+  reviewComment() {
+    if (!this.prContext.reviewComment) {
+      return '';
+    }
+
+    const reviewComment = this.prContext.reviewComment;
+
+    const output = JSON.stringify({
+      path: reviewComment.path,
+      line: reviewComment.line,
+      diff_hunk: reviewComment.diff_hunk,
+      position: reviewComment.position,
+      commit_id: reviewComment.commit_id,
+    });
+
+    return `\n\nReview Comment:\n${output}`;
   }
 
   requestCopy() {

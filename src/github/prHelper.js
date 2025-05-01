@@ -2,11 +2,12 @@ import { getOctokit } from '../providers/octokitProvider.js';
 import addIssueComment from '../utils/commentUtils.js';
 
 class PRHelper {
-  constructor({ octokit, owner, repo, prNumber }) {
+  constructor({ octokit, owner, repo, prNumber, reviewCommentId }) {
     this.octokit = octokit || getOctokit();
     this.owner = owner;
     this.repo = repo;
     this.prNumber = prNumber;
+    this.reviewCommentId = reviewCommentId;
   }
 
   async toContext() {
@@ -170,6 +171,20 @@ class PRHelper {
       return diffData;
     } catch (error) {
       console.warn('Failed to fetch PR diff:', error);
+      return null;
+    }
+  }
+
+  async getReviewContext(commentId) {
+    try {
+      const { data: reviewComment } = await this.octokit.pulls.getReviewComment({
+        owner: this.owner,
+        repo: this.repo,
+        comment_id: commentId,
+      });
+      return reviewComment;
+    } catch (error) {
+      console.warn('Failed to fetch review comment:', error);
       return null;
     }
   }

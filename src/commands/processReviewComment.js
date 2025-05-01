@@ -2,6 +2,7 @@ import { getOctokit } from '../providers/octokitProvider.js';
 import processRequest from '../utils/processRequest.js';
 import handleError from '../utils/errorHandler.js';
 import { config } from '../config.js';
+import { PRHelper } from '../github/prHelper.js';
 
 /**
  * Process a review comment on a specific line in a GitHub PR
@@ -28,35 +29,20 @@ async function processReviewComment(aiClient, triggerPhrase, payload) {
       },
     });
 
-    // Get the review comment details
-    const { data: reviewComment } = await octokit.pulls.getReviewComment({
+    const prHelper = new PRHelper({
+      octokit,
       owner,
       repo,
-      comment_id: commentId,
+      prNumber,
+      reviewCommentId: commentId,
     });
+    const prContext = await prHelper.toContext();
 
-    // Add review comment specific context
-    const reviewContext = {
-      path: reviewComment.path,
-      line: reviewComment.line,
-      diff_hunk: reviewComment.diff_hunk,
-      position: reviewComment.position,
-      commit_id: reviewComment.commit_id,
-    };
-
-    // Process the request using the shared function
     await processRequest({
       aiClient,
       triggerPhrase,
-      requestText: reviewComment.body,
-      context: {
-        owner,
-        repo,
-        prNumber,
-        diff,
-        pullRequest,
-        reviewComment: reviewContext,
-      },
+      requestText: prContext.reviewComment ? prContext.reviewComment.body : '',
+      context: prContext,
       octokit,
     });
   } catch (error) {
