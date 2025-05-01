@@ -51,13 +51,7 @@ class ContextContent {
 
     const reviewComment = this.prContext.reviewComment;
 
-    const output = JSON.stringify({
-      path: reviewComment.path,
-      line: reviewComment.line,
-      diff_hunk: reviewComment.diff_hunk,
-      position: reviewComment.position,
-      commit_id: reviewComment.commit_id,
-    });
+    const output = JSON.stringify(reviewComment);
 
     return `\n\nReview Comment:\n${output}`;
   }

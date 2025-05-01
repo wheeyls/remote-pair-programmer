@@ -37,11 +37,12 @@ async function processReviewComment(aiClient, triggerPhrase, payload) {
       reviewCommentId: commentId,
     });
     const prContext = await prHelper.toContext();
+    const comment = await prHelper.getReviewComment();
 
     await processRequest({
       aiClient,
       triggerPhrase,
-      requestText: prContext.reviewComment ? prContext.reviewComment.body : '',
+      requestText: comment.body,
       context: prContext,
       octokit,
       prHelper,

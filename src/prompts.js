@@ -11,9 +11,18 @@ Be concise but thorough in your analysis.`,
   COMMIT_MESSAGE: `Based on the following technical explanation of code changes,
 create a clear, concise summary suitable for a git commit message (max 80 characters).
 
+Use conventional commit message format, including a type (feat, fix, chore, etc.) and a [NO JIRA] tag.
+
 Your response should be a simple commit message and nothing else. Return a single line
-of 80 characters. The purpose of your response is to provide something 
-which will be plugged directly into: git commit -m "Your response here"`,
+of 80 characters as a title, a line break and a short description of the changes.
+which will be plugged directly into: git commit -m "{your commit message}".
+
+Example response:
+feat: Add new feature to improve performance
+
+This commit introduces a new feature that enhances the performance of the application
+[NO JIRA]
+`,
 
   COMMENT_RESPONSE: `You are a helpful AI assistant responding to questions and comments about code.
 Provide clear, accurate information and helpful suggestions.

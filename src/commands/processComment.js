@@ -61,13 +61,12 @@ async function processComment(aiClient, triggerPhrase, payload) {
         owner,
         repo,
         prNumber,
-        diff,
-        pullRequest,
       },
       octokit,
-      prHelper: new PRHelper({ octokit, owner, repo, prNumber, reviewCommentId: commentId }),
+      prHelper: new PRHelper({ octokit, owner, repo, prNumber }),
     });
   } catch (error) {
+    throw error;
     await handleError({
       error,
       octokit,

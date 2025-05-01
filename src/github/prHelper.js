@@ -15,6 +15,7 @@ class PRHelper {
     const files = await this.getFiles();
     const comments = await this.getComments();
     const isPR = await this.isPR();
+    const reviewComment = await this.getReviewComment();
 
     // Extract just the filenames from the files array
     const fileNames = files
@@ -133,7 +134,7 @@ class PRHelper {
 
     return `ai-bot/ai-changes-issue-${this.prNumber}`;
   }
-  
+
   async getRepoData() {
     if (this.repoData) {
       return this.repoData;
@@ -145,7 +146,7 @@ class PRHelper {
     this.repoData = data;
     return data;
   }
-  
+
   async getCloneUrl() {
     if (await this.isPR()) {
       const prDetails = await this.getPullDetails();
@@ -154,7 +155,7 @@ class PRHelper {
       return (await this.getRepoData()).clone_url;
     }
   }
-  
+
   async getDiff() {
     if (!(await this.isPR())) {
       return null;
@@ -175,20 +176,37 @@ class PRHelper {
     }
   }
 
-  async getReviewContext(commentId) {
-    try {
-      const { data: reviewComment } = await this.octokit.pulls.getReviewComment({
-        owner: this.owner,
-        repo: this.repo,
-        comment_id: commentId,
-      });
-      return reviewComment;
-    } catch (error) {
-      console.warn('Failed to fetch review comment:', error);
+  async getReviewComment() {
+    if (!this.reviewCommentId) {
       return null;
     }
+
+    if (!(await this.isPR())) {
+      return null;
+    }
+
+    if (this.reviewComment) {
+      return this.reviewComment;
+    }
+
+    const { data: reviewComment } = await this.octokit.pulls.getReviewComment({
+      owner: this.owner,
+      repo: this.repo,
+      comment_id: this.reviewCommentId,
+    });
+
+    this.reviewComment = {
+      body: reviewComment.body,
+      path: reviewComment.path,
+      line: reviewComment.line,
+      diff_hunk: reviewComment.diff_hunk,
+      position: reviewComment.position,
+      commit_id: reviewComment.commit_id,
+    };
+
+    return this.reviewComment;
   }
-  
+
   /**
    * Add a comment to the PR/issue
    * @param {Object} options - Comment options
@@ -200,7 +218,9 @@ class PRHelper {
     let issueSignature = '';
 
     if (!(await this.isPR())) {
-      issueSignature = `\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${this.owner}/${this.repo}/compare/main...${await this.getBranchName()}?expand=1`;
+      issueSignature = `\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${
+        this.owner
+      }/${this.repo}/compare/main...${await this.getBranchName()}?expand=1`;
     }
 
     return await addIssueComment({
