@@ -2,9 +2,9 @@ import fs from 'fs';
 import { processFileContext } from '../utils/fileContext.js';
 
 class ContextContent {
-  constructor(requestText, prHelper) {
+  constructor(requestText, prContext) {
     this.requestText = requestText;
-    this.prHelper = prHelper;
+    this.prContext = prContext;
   }
 
   filePaths() {
@@ -14,7 +14,7 @@ class ContextContent {
 
     const all = processFileContext({
       text: this.requestText,
-      additionalFiles: this.prHelper.getFiles(),
+      additionalFiles: this.prContext.files,
     });
 
     return (this.available = Object.keys(all || {}));

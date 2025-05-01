@@ -8,12 +8,30 @@ class PRHelper {
     this.prNumber = prNumber;
   }
 
+  async toContext() {
+    const prDetails = await this.getDetails();
+    const files = await this.getFiles();
+    const comments = await this.getComments();
+    const isPR = await this.isPR();
+
+    return {
+      prNumber: this.prNumber,
+      owner: this.owner,
+      repo: this.repo,
+      body: prDetails.body,
+      title: prDetails.title,
+      isPR,
+      files,
+      comments,
+    };
+  }
+
   async getDetails() {
     if (this.details) {
       return this.details;
     }
 
-    const { data: prData } = await this.octokit.pulls.get({
+    const { data: prData } = await this.octokit.issues.get({
       owner: this.owner,
       repo: this.repo,
       pull_number: this.prNumber,
@@ -23,7 +41,16 @@ class PRHelper {
   }
 
   async isPR() {
-    const data = await this.getDetails();
+    if (this.isPRValue !== undefined) {
+      return this.isPRValue;
+    }
+
+    // First, try to get the issue to check if it exists
+    const { data } = await this.octokit.issues.get({
+      owner: this.owner,
+      repo: this.repo,
+      issue_number: this.prNumber,
+    });
 
     let issue;
     if (Array.isArray(data)) {
@@ -35,7 +62,7 @@ class PRHelper {
       issue = data;
     }
 
-    return issue.pull_request !== undefined;
+    return (this.isPRValue = issue.pull_request !== undefined);
   }
 
   async getFiles() {

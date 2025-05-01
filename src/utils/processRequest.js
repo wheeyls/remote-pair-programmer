@@ -49,8 +49,10 @@ async function processRequest(params) {
     const isArchitectureRequest = requestText.includes('architect');
 
     if (!isArchitectureRequest) {
-      // This is a code modification request
-      const contextContent = new ContextContent(requestText, pr);
+      const contextContent = new ContextContent(
+        requestText,
+        await pr.toContext()
+      );
 
       const result = await modifyCode({
         prHelper: pr,
