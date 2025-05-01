@@ -49,9 +49,17 @@ async function processRequest(params) {
     const isArchitectureRequest = requestText.includes('architect');
 
     if (!isArchitectureRequest) {
+      // Get PR context and ensure files property is an array of strings
+      const prContext = await pr.toContext();
+      
+      // Make sure files is a proper array of strings
+      if (prContext.files && !Array.isArray(prContext.files)) {
+        prContext.files = [];
+      }
+      
       const contextContent = new ContextContent(
         requestText,
-        await pr.toContext()
+        prContext
       );
 
       const result = await modifyCode({
