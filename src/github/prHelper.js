@@ -20,6 +20,8 @@ class PRHelper {
       .map((file) => file.filename)
       .filter((name) => typeof name === 'string');
 
+    const diff = await this.getDiff();
+
     return {
       prNumber: this.prNumber,
       owner: this.owner,
@@ -30,6 +32,7 @@ class PRHelper {
       files,
       fileNames, // Add the array of just filenames
       comments,
+      diff,
     };
   }
 
@@ -150,7 +153,27 @@ class PRHelper {
       return (await this.getRepoData()).clone_url;
     }
   }
-
+  
+  async getDiff() {
+    if (!(await this.isPR())) {
+      return null;
+    }
+    try {
+      const { data: diffData } = await this.octokit.pulls.get({
+        owner: this.owner,
+        repo: this.repo,
+        pull_number: this.prNumber,
+        mediaType: {
+          format: 'diff',
+        },
+      });
+      return diffData;
+    } catch (error) {
+      console.warn('Failed to fetch PR diff:', error);
+      return null;
+    }
+  }
+  
   /**
    * Add a comment to the PR/issue
    * @param {Object} options - Comment options

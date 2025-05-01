@@ -29,9 +29,10 @@ class ContextContent {
       'Comment snippets:',
       this.prContext.comments.map((c) => c.body?.substring(0, 50)).join('\n')
     );
+    console.log('Diff snippet:', this.prContext.diff ? this.prContext.diff.substring(0, 50) : 'No diff available');
     console.log('***********************************');
 
-    return `${this.requestCopy()}\n\n${this.fileCopy()}`;
+    return `${this.requestCopy()}\n\n${this.fileCopy()}${this.diff()}`;
   }
 
   requestCopy() {
@@ -69,6 +70,10 @@ class ContextContent {
 ${Object.entries(fileContents)
   .map(([filename, content]) => `--- ${filename} ---\n${content}\n`)
   .join('\n')}`;
+  }
+
+  diff() {
+    return this.prContext.diff ? `\n\nDiff:\n${this.prContext.diff}` : '';
   }
 }
 
