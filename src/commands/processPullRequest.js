@@ -2,6 +2,7 @@ import { getOctokit } from '../providers/octokitProvider.js';
 import processRequest from '../utils/processRequest.js';
 import handleError from '../utils/errorHandler.js';
 import { config } from '../config.js';
+import { PRHelper } from '../github/prHelper.js';
 
 /**
  * Process a GitHub pull request

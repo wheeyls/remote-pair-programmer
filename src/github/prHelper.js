@@ -200,9 +200,7 @@ class PRHelper {
     let issueSignature = '';
 
     if (!(await this.isPR())) {
-      issueSignature = `\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${
-        this.owner
-      }/${this.repo}/compare/main...${await this.getBranchName()}?expand=1`;
+      issueSignature = `\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${this.owner}/${this.repo}/compare/main...${await this.getBranchName()}?expand=1`;
     }
 
     return await addIssueComment({
@@ -212,6 +210,20 @@ class PRHelper {
       issue_number: this.prNumber,
       body: body + issueSignature,
     });
+  }
+
+  async addReaction() {
+    try {
+      // Add a light-bulb reaction to indicate the bot has started work
+      await this.octokit.reactions.createForIssue({
+        owner: this.owner,
+        repo: this.repo,
+        issue_number: this.prNumber,
+        content: 'light_bulb',
+      });
+    } catch (err) {
+      console.error('Failed to add reaction:', err);
+    }
   }
 }
 

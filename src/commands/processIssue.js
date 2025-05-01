@@ -14,6 +14,7 @@ async function processIssue(aiClient, triggerPhrase, payload) {
   const pr = new PRHelper({ octokit, owner, repo, prNumber: issueNumber });
 
   try {
+    await pr.addReaction();
     // Get issue details
     const issue = await pr.getIssueDetails();
 
