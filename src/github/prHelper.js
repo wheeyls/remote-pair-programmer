@@ -1,4 +1,5 @@
 import { getOctokit } from '../providers/octokitProvider.js';
+import addIssueComment from '../utils/commentUtils.js';
 
 class PRHelper {
   constructor({ octokit, owner, repo, prNumber }) {
@@ -118,6 +119,61 @@ class PRHelper {
   async getBody() {
     const prDetails = await this.getDetails();
     return prDetails.body;
+  }
+
+  async getBranchName() {
+    if (await this.isPR()) {
+      const prDetails = await this.getPullDetails();
+      return prDetails.head.ref;
+    }
+
+    return `ai-bot/ai-changes-issue-${this.prNumber}`;
+  }
+  
+  async getRepoData() {
+    if (this.repoData) {
+      return this.repoData;
+    }
+    const { data } = await this.octokit.repos.get({
+      owner: this.owner,
+      repo: this.repo,
+    });
+    this.repoData = data;
+    return data;
+  }
+  
+  async getCloneUrl() {
+    if (await this.isPR()) {
+      const prDetails = await this.getPullDetails();
+      return prDetails.head.repo.clone_url;
+    } else {
+      return (await this.getRepoData()).clone_url;
+    }
+  }
+
+  /**
+   * Add a comment to the PR/issue
+   * @param {Object} options - Comment options
+   * @param {string} options.body - Comment body
+   * @param {string} [options.quote_reply_to] - Text to quote in the reply
+   * @returns {Promise<Object>} - Comment creation result
+   */
+  async addComment({ body }) {
+    let issueSignature = '';
+
+    if (!(await this.isPR())) {
+      issueSignature = `\n\nYou can create a PR from this branch manually or use the following URL:\nhttps://github.com/${
+        this.owner
+      }/${this.repo}/compare/main...${await this.getBranchName()}?expand=1`;
+    }
+
+    return await addIssueComment({
+      octokit: this.octokit,
+      owner: this.owner,
+      repo: this.repo,
+      issue_number: this.prNumber,
+      body: body + issueSignature,
+    });
   }
 }
 

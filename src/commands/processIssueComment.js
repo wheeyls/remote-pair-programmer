@@ -21,12 +21,6 @@ async function processIssueComment(aiClient, triggerPhrase, payload) {
 
     const commentBody = comment.body;
 
-    // Check if this comment contains the trigger phrase
-    if (!commentBody.includes(triggerPhrase)) {
-      console.log('Comment does not contain trigger phrase. Skipping.');
-      return;
-    }
-
     // Get issue details to provide context
     const { data: issue } = await octokit.issues.get({
       owner,

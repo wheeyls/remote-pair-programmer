@@ -19,13 +19,19 @@ import { getOctokit } from '../providers/octokitProvider.js';
  * @returns {Promise<Object>} - Result of processing the request
  */
 async function processRequest(params) {
-  const { aiClient, triggerPhrase, requestText, context, codeModifier } =
-    params;
+  const {
+    aiClient,
+    triggerPhrase,
+    requestText,
+    context,
+    codeModifier,
+    prHelper,
+  } = params;
   const { owner, repo, prNumber } = context;
 
   const octokit = getOctokit();
   const modifyCode = codeModifier || defaultCodeModifier;
-  const pr = new PRHelper({ octokit, owner, repo, prNumber });
+  const pr = prHelper || new PRHelper({ octokit, owner, repo, prNumber });
 
   // Check if this is a bot message or should be ignored
   if (requestText.includes('bot:ignore')) {
@@ -79,13 +85,8 @@ async function processRequest(params) {
       }
 
       // Post response as a reply
-      await addIssueComment({
-        octokit,
-        owner,
-        repo,
-        issue_number: prNumber,
+      await pr.addComment({
         body: responseBody,
-        quote_reply_to: requestText,
       });
 
       return { success: true, isCodeMod: true, response: responseBody };

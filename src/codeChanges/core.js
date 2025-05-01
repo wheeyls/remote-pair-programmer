@@ -67,8 +67,8 @@ async function modifyCode({
       const prFiles = await prHelper.getFiles();
 
       files = prFiles;
-      branch = pullRequest.head.ref;
-      repoUrl = pullRequest.head.repo.clone_url;
+      branch = await prHelper.getBranchName();
+      repoUrl = await prHelper.getCloneUrl();
 
       // Clone only the specific branch with minimal history
       git.clone(repoUrl, branch);
@@ -79,8 +79,8 @@ async function modifyCode({
         repo,
       });
 
-      repoUrl = repoData.clone_url;
-      const issueBranch = `ai-bot/ai-changes-issue-${prNumber}`;
+      repoUrl = await prHelper.getCloneUrl();
+      const issueBranch = await prHelper.getBranchName();
 
       // Check if the branch already exists
       let branchExists = false;
