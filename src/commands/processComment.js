@@ -2,6 +2,7 @@ import { getOctokit } from '../providers/octokitProvider.js';
 import processRequest from '../utils/processRequest.js';
 import handleError from '../utils/errorHandler.js';
 import processRevert from './processRevert.js';
+import { PRHelper } from '../github/prHelper.js';
 import { config } from '../config.js';
 
 /**
@@ -64,6 +65,7 @@ async function processComment(aiClient, triggerPhrase, payload) {
         pullRequest,
       },
       octokit,
+      prHelper: new PRHelper({ octokit, owner, repo, prNumber, reviewCommentId: commentId }),
     });
   } catch (error) {
     await handleError({

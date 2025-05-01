@@ -44,6 +44,7 @@ async function processReviewComment(aiClient, triggerPhrase, payload) {
       requestText: prContext.reviewComment ? prContext.reviewComment.body : '',
       context: prContext,
       octokit,
+      prHelper,
     });
   } catch (error) {
     await handleError({

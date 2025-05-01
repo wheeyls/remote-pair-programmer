@@ -215,12 +215,21 @@ class PRHelper {
   async addReaction() {
     try {
       // Add a light-bulb reaction to indicate the bot has started work
-      await this.octokit.reactions.createForIssue({
-        owner: this.owner,
-        repo: this.repo,
-        issue_number: this.prNumber,
-        content: 'light_bulb',
-      });
+      if (this.reviewCommentId) {
+        await this.octokit.reactions.createForIssueComment({
+          owner: this.owner,
+          repo: this.repo,
+          comment_id: this.reviewCommentId,
+          content: 'rocket',
+        });
+      } else {
+        await this.octokit.reactions.createForIssue({
+          owner: this.owner,
+          repo: this.repo,
+          issue_number: this.prNumber,
+          content: 'rocket',
+        });
+      }
     } catch (err) {
       console.error('Failed to add reaction:', err);
     }

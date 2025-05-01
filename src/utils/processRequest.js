@@ -45,6 +45,8 @@ async function processRequest(params) {
     return { success: true, ignored: true };
   }
 
+  await pr.addReaction();
+
   try {
     // Check if this is a code modification request
     const isArchitectureRequest = requestText.includes('architect');
