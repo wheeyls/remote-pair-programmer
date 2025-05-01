@@ -27,11 +27,23 @@ class PRHelper {
   }
 
   async getDetails() {
-    if (this.details) {
-      return this.details;
+    if (await this.isPR()) {
+      return await this.getPullDetails();
+    } else {
+      return await this.getIssueDetails();
+    }
+  }
+
+  async getPullDetails() {
+    if (this.pullDetails) {
+      return this.pullDetails;
     }
 
-    const { data: prData } = await this.octokit.issues.get({
+    if (!(await this.isPR())) {
+      throw new Error('Not a pull request');
+    }
+
+    const { data: prData } = await this.octokit.pulls.get({
       owner: this.owner,
       repo: this.repo,
       pull_number: this.prNumber,
@@ -40,27 +52,31 @@ class PRHelper {
     return (this.details = prData);
   }
 
-  async isPR() {
-    if (this.isPRValue !== undefined) {
-      return this.isPRValue;
+  async getIssueDetails() {
+    if (this.issueDetails !== undefined) {
+      return this.issueDetails;
     }
-
-    // First, try to get the issue to check if it exists
-    const { data } = await this.octokit.issues.get({
+    const { data: issueData } = await this.octokit.issues.get({
       owner: this.owner,
       repo: this.repo,
       issue_number: this.prNumber,
     });
 
-    let issue;
-    if (Array.isArray(data)) {
-      if (data.length === 0) {
-        return false;
-      }
-      issue = data[0];
+    if (Array.isArray(issueData)) {
+      this.issueDetails = issueData[0] || false;
     } else {
-      issue = data;
+      this.issueDetails = issueData;
     }
+
+    return this.issueDetails;
+  }
+
+  async isPR() {
+    if (this.isPRValue !== undefined) {
+      return this.isPRValue;
+    }
+
+    const issue = await this.getIssueDetails();
 
     return (this.isPRValue = issue.pull_request !== undefined);
   }
