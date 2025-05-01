@@ -21,6 +21,15 @@ class ContextContent {
   }
 
   toString() {
+    console.log('Providing context for request:', this.requestText);
+    console.log('Available files:', this.filePaths().join(' '));
+    console.log('Title:', this.prContext.title.substring(0, 50));
+    console.log('Body:', this.prContext.body.substring(0, 50));
+    console.log(
+      'Comment snippets:',
+      this.prContext.comments.map((c) => c.body.substring(0, 50)).join('\n')
+    );
+
     return `${this.requestCopy()}\n\n${this.fileCopy()}`;
   }
 

@@ -69,7 +69,7 @@ Important rules:
 - SEARCH/REPLACE blocks will only replace the first match occurrence
 - Include multiple unique SEARCH/REPLACE blocks if needed
 - Keep SEARCH/REPLACE blocks concise - include just enough lines to uniquely identify the section
-- To create a new file, use an empty SEARCH section
+- To create a new file, use an empty SEARCH section, and populate the REPLACE section with the new file content
 - To move code within a file, use 2 SEARCH/REPLACE blocks: 1 to delete it from its current location, 1 to insert it in the new location
 
 Note: The user may have included file context directives in their request:
