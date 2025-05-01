@@ -9,21 +9,6 @@ import { applyPatches, sanitizeForShell } from './fileUtils.js';
 import { config } from '../config.js';
 import { execSync } from 'child_process';
 
-function lintStagedCheck(git) {
-  try {
-    if (
-      fs.existsSync('.lintstagedrc.json') ||
-      fs.existsSync('.lintstagedrc.yml')
-    ) {
-      console.log('Found .lintstagedrc, running lint-staged...');
-      execSync('npx lint-staged', { stdio: 'inherit' });
-
-      git.addAll();
-    }
-  } catch (error) {
-    console.error('Error running lint-staged:', error);
-  }
-}
 
 /**
  * Analyzes a request to modify code and makes the requested changes
@@ -155,8 +140,6 @@ async function modifyCode({
     commitMessage = sanitizeForShell(commitMessage);
 
     git.addAll();
-
-    lintStagedCheck(git);
 
     git.commit(`${commitMessage}\n\nRequested by comment on PR #${prNumber}`);
 
