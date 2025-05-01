@@ -46,6 +46,15 @@ async function processRequest(params) {
   }
 
   await pr.addReaction();
+  const prContext = await pr.toContext();
+
+  // Make sure fileNames is a proper array
+  if (!prContext.fileNames || !Array.isArray(prContext.fileNames)) {
+    console.log('PR context fileNames is not an array, setting to empty array');
+    prContext.fileNames = [];
+  }
+
+  const contextContent = new ContextContent(requestText, prContext);
 
   try {
     // Check if this is a code modification request
@@ -53,21 +62,6 @@ async function processRequest(params) {
 
     if (!isArchitectureRequest) {
       // Get PR context
-      const prContext = await pr.toContext();
-
-      // Log the fileNames property to debug
-      console.log('PR context fileNames:', JSON.stringify(prContext.fileNames));
-
-      // Make sure fileNames is a proper array
-      if (!prContext.fileNames || !Array.isArray(prContext.fileNames)) {
-        console.log(
-          'PR context fileNames is not an array, setting to empty array'
-        );
-        prContext.fileNames = [];
-      }
-
-      const contextContent = new ContextContent(requestText, prContext);
-
       const result = await modifyCode({
         prHelper: pr,
         aiClient,
@@ -97,7 +91,7 @@ async function processRequest(params) {
         aiClient,
         {
           comment: requestText,
-          context: `PR #${prNumber}`,
+          context: contextContent.toString(),
         },
         'COMMENT_RESPONSE',
         'strong'
