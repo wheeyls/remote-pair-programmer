@@ -61,6 +61,8 @@ async function processRequest(params) {
     const isArchitectureRequest = requestText.includes('architect');
 
     if (!isArchitectureRequest) {
+      console.log('Using two-stage approach for code modifications: planning and applying');
+      
       // Get PR context
       const result = await modifyCode({
         prHelper: pr,
@@ -75,7 +77,7 @@ async function processRequest(params) {
           result.explanation
         }\n\n**Modified files:**\n${result.changedFiles
           .map((f) => `- \`${f}\``)
-          .join('\n')}`;
+          .join('\n')}\n\n*Changes were applied using a two-stage process: planning and applying.*`;
       } else {
         responseBody = `❌ I encountered an error while trying to modify the code:\n\`\`\`\n${result.error}\n\`\`\`\n\nPlease provide more details or try a different request.`;
       }

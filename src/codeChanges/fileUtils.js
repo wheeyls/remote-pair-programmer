@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { requestCodeChanges } from './aiUtils.js';
+import { PROMPTS } from '../prompts.js';
 
 /**
  * Sanitize a string for safe use in shell commands
@@ -27,6 +28,7 @@ function sanitizeForShell(str) {
  * @returns {Array<Object>} - Remaining blocks that couldn't be applied
  */
 async function applyPatches(blocks, changedFiles, aiClient, contextContent) {
+  console.log(`Applying ${blocks.length} search/replace blocks`);
   let currentBlocks = blocks;
   let maxRetries = 3;
   let retryCount = 0;
@@ -103,11 +105,8 @@ async function applyPatches(blocks, changedFiles, aiClient, contextContent) {
     );
 
     // Create a new request for the AI to fix the failed blocks, including user request and file contents
-    const retryRequestText = `${contextContent.toString()}
-
-This is a repeated attempt to apply the search/replace blocks.
-The following search/replace blocks failed to apply. The other blocks were applied successfully.
-Please provide corrected versions for these blocks:
+    const retryRequestText = 
+      `${PROMPTS.RETRY_CODE_APPLY}
 
 ${failedBlocks
   .map(
@@ -127,11 +126,11 @@ ${fb.block.replace}
   .join('\n')}
 `;
 
+    contextContent.append(retryRequestText);
     // Get a new AI response for the failed blocks, passing the additional context
     const retryResponse = await requestCodeChanges(
-      retryRequestText,
-      aiClient,
-      contextContent
+      contextContent,
+      aiClient
     );
 
     const retryBlocks = retryResponse.changes;

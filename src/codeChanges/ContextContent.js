@@ -2,9 +2,10 @@ import fs from 'fs';
 import { processFileContext } from '../utils/fileContext.js';
 
 class ContextContent {
-  constructor(requestText, prContext) {
+  constructor(requestText, prContext, plan) {
     this.requestText = requestText;
     this.prContext = prContext;
+    this.plan = plan;
   }
 
   filePaths() {
@@ -18,6 +19,10 @@ class ContextContent {
     });
 
     return (this.available = Object.keys(all || {}));
+  }
+
+  append(text) {
+    this.requestText += `${text}\n\nPrevious request:\n${this.requestText}`;
   }
 
   toString() {
@@ -41,7 +46,15 @@ class ContextContent {
     );
     console.log('***********************************');
 
-    return `${this.requestCopy()}\n\n${this.fileCopy()}${this.diff()}${this.reviewComment()}`;
+    return `${this.requestCopy()}${this.planCopy()}\n\n${this.fileCopy()}${this.diff()}${this.reviewComment()}`;
+  }
+
+  planCopy() {
+    if (!this.plan) {
+      return '';
+    }
+
+    return `\n\nPlan:\n${this.plan}`;
   }
 
   reviewComment() {

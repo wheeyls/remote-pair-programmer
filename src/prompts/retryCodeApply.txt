@@ -1,0 +1,3 @@
+This is a repeated attempt to apply the search/replace blocks.
+The following search/replace blocks failed to apply. The other blocks were applied successfully.
+Please provide corrected versions for these blocks:

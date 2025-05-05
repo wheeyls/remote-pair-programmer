@@ -17,6 +17,7 @@ describe('modifyCode', () => {
   let mockUtils;
   let prHelper;
   let contextContent;
+  let mockPlan;
 
   // Setup before each test
   beforeEach(() => {
@@ -31,6 +32,10 @@ describe('modifyCode', () => {
     // Setup common mocks
     mockAiClient = {
       generateCompletion: jest.fn().mockResolvedValue('AI response'),
+    };
+
+    mockPlan = {
+      getPlan: jest.fn().mockResolvedValue('Plan for code changes'),
     };
 
     mockGit = {
@@ -96,6 +101,7 @@ describe('modifyCode', () => {
 
     // Mock utility functions
     mockUtils = {
+      plan: mockPlan,
       requestCodeChanges: jest.fn().mockResolvedValue({
         changes: [
           {

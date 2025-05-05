@@ -1,28 +1,27 @@
 import PROMPTS from '../prompts.js';
 
 /**
- * Request code changes from AI and extract search/replace blocks
+ * Request code changes from AI using a two-stage approach:
+ * 1. Planning stage with a frontier model
+ * 2. Application stage with the same frontier model
+ *
  * @param {ContextContent} context - The context to send to the AI
  * @param {Object} aiClient - AIClient instance
  * @param {string|ContextContent} [additionalContext] - Additional context for retry attempts
  * @returns {Promise<Object>} - Object containing changes and explanation
  */
-async function requestCodeChanges(context, aiClient, additionalContext = '') {
-  let contextToUse;
-  if (additionalContext) {
-    contextToUse = `${context.toString()}\n\nAdditional context:\n${additionalContext.toString ? additionalContext.toString() : additionalContext}`;
-  } else {
-    contextToUse = context.toString();
-  }
+async function requestCodeChanges(context, aiClient) {
+  let contextToUse = context.toString();
 
-  const aiResponse = await aiClient.generateCompletion({
-    prompt: PROMPTS.CODE_MODIFICATION,
+  console.log('Generating SEARCH/REPLACE blocks');
+  const applyResponse = await aiClient.generateCompletion({
+    prompt: PROMPTS.CODE_APPLY,
     context: contextToUse,
-    modelStrength: 'strong', // Use strong model for code modifications
+    modelStrength: 'strong', // Use strong model for applying changes too
     temperature: 0.2,
   });
 
-  return extractCodeChanges(aiResponse);
+  return extractCodeChanges(applyResponse);
 }
 
 /**
